@@ -1,0 +1,249 @@
+{
+  "version": 1,
+  "full": {
+    "1": [
+      [
+        {"type": "key", "units": 1, "label": "Ctrl", "logical": "controlLeft"},
+        {"type": "key", "units": 1, "label": "Esc", "logical": "escape"},
+        {"type": "key", "units": 1, "label": "Tab", "logical": "tab"},
+        {"type": "key", "units": 1, "label": "←", "logical": "arrowLeft"},
+        {"type": "key", "units": 1, "label": "↓", "logical": "arrowDown"},
+        {"type": "key", "units": 1, "label": "↑", "logical": "arrowUp"},
+        {"type": "key", "units": 1, "label": "→", "logical": "arrowRight"}
+      ],
+      [
+        {"type": "text", "units": 1, "label": "q", "text": "q", "long": "1"},
+        {"type": "text", "units": 1, "label": "w", "text": "w", "long": "2"},
+        {"type": "text", "units": 1, "label": "e", "text": "e", "long": "3"},
+        {"type": "text", "units": 1, "label": "r", "text": "r", "long": "4"},
+        {"type": "text", "units": 1, "label": "t", "text": "t", "long": "5"},
+        {"type": "text", "units": 1, "label": "y", "text": "y", "long": "6"},
+        {"type": "text", "units": 1, "label": "u", "text": "u", "long": "7"},
+        {"type": "text", "units": 1, "label": "i", "text": "i", "long": "8"},
+        {"type": "text", "units": 1, "label": "o", "text": "o", "long": "9"},
+        {"type": "text", "units": 1, "label": "p", "text": "p", "long": "0"}
+      ],
+      [
+        {"type": "empty", "units": 0.5},
+        {"type": "text", "units": 1, "label": "a", "text": "a", "long": "@"},
+        {"type": "text", "units": 1, "label": "s", "text": "s", "long": "#"},
+        {"type": "text", "units": 1, "label": "d", "text": "d", "long": "$"},
+        {"type": "text", "units": 1, "label": "f", "text": "f", "long": "%"},
+        {"type": "text", "units": 1, "label": "g", "text": "g", "long": "&"},
+        {"type": "text", "units": 1, "label": "h", "text": "h", "long": "*"},
+        {"type": "text", "units": 1, "label": "j", "text": "j", "long": "-"},
+        {"type": "text", "units": 1, "label": "k", "text": "k", "long": "+"},
+        {"type": "text", "units": 1, "label": "l", "text": "l", "long": "_"},
+        {"type": "empty", "units": 0.5}
+      ],
+      [
+        {"type": "layout", "units": 1.5, "label": "Shift", "to": 2},
+        {"type": "text", "units": 1, "label": "z", "text": "z", "long": "!"},
+        {"type": "text", "units": 1, "label": "x", "text": "x", "long": "\""},
+        {"type": "text", "units": 1, "label": "c", "text": "c", "long": "'"},
+        {"type": "text", "units": 1, "label": "v", "text": "v", "long": ":"},
+        {"type": "text", "units": 1, "label": "b", "text": "b", "long": ";"},
+        {"type": "text", "units": 1, "label": "n", "text": "n", "long": "/"},
+        {"type": "text", "units": 1, "label": "m", "text": "m", "long": "?"},
+        {"type": "key", "units": 1.5, "label": "BackSpace", "logical": "backspace"}
+      ],
+      [
+        {"type": "layout", "units": 1.5, "label": "?123", "to": 3},
+        {"type": "text", "units": 1, "label": "/", "text": "/"},
+        {"type": "text", "units": 5, "label": "Space", "text": " "},
+        {"type": "text", "units": 1, "label": ".", "text": "."},
+        {"type": "key", "units": 1.5, "label": "Enter", "logical": "enter"}
+      ]
+    ],
+    "2": [
+      [
+        {"type": "key", "units": 1, "label": "Ctrl", "logical": "controlLeft"},
+        {"type": "key", "units": 1, "label": "Esc", "logical": "escape"},
+        {"type": "key", "units": 1, "label": "Tab", "logical": "tab"},
+        {"type": "key", "units": 1, "label": "←", "logical": "arrowLeft"},
+        {"type": "key", "units": 1, "label": "↓", "logical": "arrowDown"},
+        {"type": "key", "units": 1, "label": "↑", "logical": "arrowUp"},
+        {"type": "key", "units": 1, "label": "→", "logical": "arrowRight"}
+      ],
+      [
+        {"type": "text", "units": 1, "label": "Q", "text": "Q", "long": "1"},
+        {"type": "text", "units": 1, "label": "W", "text": "W", "long": "2"},
+        {"type": "text", "units": 1, "label": "E", "text": "E", "long": "3"},
+        {"type": "text", "units": 1, "label": "R", "text": "R", "long": "4"},
+        {"type": "text", "units": 1, "label": "T", "text": "T", "long": "5"},
+        {"type": "text", "units": 1, "label": "Y", "text": "Y", "long": "6"},
+        {"type": "text", "units": 1, "label": "U", "text": "U", "long": "7"},
+        {"type": "text", "units": 1, "label": "I", "text": "I", "long": "8"},
+        {"type": "text", "units": 1, "label": "O", "text": "O", "long": "9"},
+        {"type": "text", "units": 1, "label": "P", "text": "P", "long": "0"}
+      ],
+      [
+        {"type": "empty", "units": 0.5},
+        {"type": "text", "units": 1, "label": "A", "text": "A", "long": "@"},
+        {"type": "text", "units": 1, "label": "S", "text": "S", "long": "#"},
+        {"type": "text", "units": 1, "label": "D", "text": "D", "long": "$"},
+        {"type": "text", "units": 1, "label": "F", "text": "F", "long": "%"},
+        {"type": "text", "units": 1, "label": "G", "text": "G", "long": "&"},
+        {"type": "text", "units": 1, "label": "H", "text": "H", "long": "*"},
+        {"type": "text", "units": 1, "label": "J", "text": "J", "long": "-"},
+        {"type": "text", "units": 1, "label": "K", "text": "K", "long": "+"},
+        {"type": "text", "units": 1, "label": "L", "text": "L", "long": "_"},
+        {"type": "empty", "units": 0.5}
+      ],
+      [
+        {"type": "layout", "units": 1.5, "label": "Shift", "to": 1},
+        {"type": "text", "units": 1, "label": "Z", "text": "Z", "long": "!"},
+        {"type": "text", "units": 1, "label": "X", "text": "X", "long": "\""},
+        {"type": "text", "units": 1, "label": "C", "text": "C", "long": "'"},
+        {"type": "text", "units": 1, "label": "V", "text": "V", "long": ":"},
+        {"type": "text", "units": 1, "label": "B", "text": "B", "long": ";"},
+        {"type": "text", "units": 1, "label": "N", "text": "N", "long": "/"},
+        {"type": "text", "units": 1, "label": "M", "text": "M", "long": "?"},
+        {"type": "key", "units": 1.5, "label": "Bksp", "logical": "backspace"}
+      ],
+      [
+        {"type": "layout", "units": 1.5, "label": "?123", "to": 3},
+        {"type": "text", "units": 1, "label": "/", "text": "/"},
+        {"type": "text", "units": 5, "label": "Space", "text": " "},
+        {"type": "text", "units": 1, "label": ".", "text": "."},
+        {"type": "key", "units": 1.5, "label": "Enter", "logical": "enter"}
+      ]
+    ],
+    "3": [
+      [
+        {"type": "key", "units": 1, "label": "Ctrl", "logical": "controlLeft"},
+        {"type": "key", "units": 1, "label": "Esc", "logical": "escape"},
+        {"type": "key", "units": 1, "label": "Tab", "logical": "tab"},
+        {"type": "key", "units": 1, "label": "←", "logical": "arrowLeft"},
+        {"type": "key", "units": 1, "label": "↓", "logical": "arrowDown"},
+        {"type": "key", "units": 1, "label": "↑", "logical": "arrowUp"},
+        {"type": "key", "units": 1, "label": "→", "logical": "arrowRight"}
+      ],
+      [
+        {"type": "text", "units": 1, "label": "1", "text": "1"},
+        {"type": "text", "units": 1, "label": "2", "text": "2"},
+        {"type": "text", "units": 1, "label": "3", "text": "3"},
+        {"type": "text", "units": 1, "label": "4", "text": "4"},
+        {"type": "text", "units": 1, "label": "5", "text": "5"},
+        {"type": "text", "units": 1, "label": "6", "text": "6"},
+        {"type": "text", "units": 1, "label": "7", "text": "7"},
+        {"type": "text", "units": 1, "label": "8", "text": "8"},
+        {"type": "text", "units": 1, "label": "9", "text": "9"},
+        {"type": "text", "units": 1, "label": "0", "text": "0"}
+      ],
+      [
+        {"type": "text", "units": 1, "label": "@", "text": "@"},
+        {"type": "text", "units": 1, "label": "#", "text": "#"},
+        {"type": "text", "units": 1, "label": "$", "text": "$"},
+        {"type": "text", "units": 1, "label": "%", "text": "%"},
+        {"type": "text", "units": 1, "label": "&", "text": "&"},
+        {"type": "text", "units": 1, "label": "*", "text": "*"},
+        {"type": "text", "units": 1, "label": "-", "text": "-"},
+        {"type": "text", "units": 1, "label": "+", "text": "+"},
+        {"type": "text", "units": 1, "label": "(", "text": "("},
+        {"type": "text", "units": 1, "label": ")", "text": ")"}
+      ],
+      [
+        {"type": "layout", "units": 1.5, "label": "~\\{", "to": 4},
+        {"type": "text", "units": 1, "label": "!", "text": "!"},
+        {"type": "text", "units": 1, "label": "\"", "text": "\""},
+        {"type": "text", "units": 1, "label": "'", "text": "'"},
+        {"type": "text", "units": 1, "label": ":", "text": ":"},
+        {"type": "text", "units": 1, "label": ";", "text": ";"},
+        {"type": "text", "units": 1, "label": "/", "text": "/"},
+        {"type": "text", "units": 1, "label": "?", "text": "?"},
+        {"type": "key", "units": 1.5, "label": "Bksp", "logical": "backspace"}
+      ],
+      [
+        {"type": "layout", "units": 1.5, "label": "ABC", "to": 1},
+        {"type": "text", "units": 1, "label": ",", "text": ","},
+        {"type": "text", "units": 5, "label": "Space", "text": " "},
+        {"type": "text", "units": 1, "label": ".", "text": "."},
+        {"type": "key", "units": 1.5, "label": "Enter", "logical": "enter"}
+      ]
+    ],
+    "4": [
+      [
+        {"type": "key", "units": 1, "label": "Ctrl", "logical": "controlLeft"},
+        {"type": "key", "units": 1, "label": "Esc", "logical": "escape"},
+        {"type": "key", "units": 1, "label": "Tab", "logical": "tab"},
+        {"type": "key", "units": 1, "label": "←", "logical": "arrowLeft"},
+        {"type": "key", "units": 1, "label": "↓", "logical": "arrowDown"},
+        {"type": "key", "units": 1, "label": "↑", "logical": "arrowUp"},
+        {"type": "key", "units": 1, "label": "→", "logical": "arrowRight"}
+      ],
+      [
+        {"type": "text", "units": 1, "label": "~", "text": "~"},
+        {"type": "text", "units": 1, "label": "`", "text": "`"},
+        {"type": "text", "units": 1, "label": "|", "text": "|"},
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "text", "units": 1, "label": "%", "text": "%"},
+        {"type": "empty", "units": 1},
+        {"type": "text", "units": 1, "label": "{", "text": "{"},
+        {"type": "text", "units": 1, "label": "}", "text": "}"}
+      ],
+      [
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "text", "units": 1, "label": "^", "text": "^"},
+        {"type": "text", "units": 1, "label": "_", "text": "_"},
+        {"type": "text", "units": 1, "label": "=", "text": "="},
+        {"type": "text", "units": 1, "label": "[", "text": "["},
+        {"type": "text", "units": 1, "label": "]", "text": "]"}
+      ],
+      [
+        {"type": "layout", "units": 1.5, "label": "?123", "to": 3},
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "empty", "units": 1},
+        {"type": "text", "units": 1, "label": "\\", "text": "\\"},
+        {"type": "text", "units": 1, "label": "<", "text": "<"},
+        {"type": "text", "units": 1, "label": ">", "text": ">"},
+        {"type": "key", "units": 1.5, "label": "Bksp", "logical": "backspace"}
+      ],
+      [
+        {"type": "layout", "units": 1.5, "label": "ABC", "to": 1},
+        {"type": "text", "units": 1, "label": "\"", "text": "\""},
+        {"type": "text", "units": 5, "label": "Space", "text": " "},
+        {"type": "text", "units": 1, "label": ".", "text": "."},
+        {"type": "key", "units": 1.5, "label": "Enter", "logical": "enter"}
+      ]
+    ]
+  },
+  "numeric": [
+    [
+      {"type": "empty", "units": 1},
+      {"type": "text", "units": 1, "label": "1", "text": "1"},
+      {"type": "text", "units": 1, "label": "2", "text": "2"},
+      {"type": "text", "units": 1, "label": "3", "text": "3"},
+      {"type": "empty", "units": 1}
+    ],
+    [
+      {"type": "empty", "units": 1},
+      {"type": "text", "units": 1, "label": "4", "text": "4"},
+      {"type": "text", "units": 1, "label": "5", "text": "5"},
+      {"type": "text", "units": 1, "label": "6", "text": "6"},
+      {"type": "empty", "units": 1}
+    ],
+    [
+      {"type": "empty", "units": 1},
+      {"type": "text", "units": 1, "label": "7", "text": "7"},
+      {"type": "text", "units": 1, "label": "8", "text": "8"},
+      {"type": "text", "units": 1, "label": "9", "text": "9"},
+      {"type": "empty", "units": 1}
+    ],
+    [
+      {"type": "empty", "units": 1},
+      {"type": "key", "units": 1, "label": "Bksp", "logical": "backspace"},
+      {"type": "text", "units": 1, "label": "0", "text": "0"},
+      {"type": "key", "units": 1, "label": "Enter", "logical": "enter"},
+      {"type": "empty", "units": 1}
+    ]
+  ]
+}

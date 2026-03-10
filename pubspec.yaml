@@ -1,0 +1,98 @@
+name: aurora_recovery
+description: "Aurora Recovery Flutter project."
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  xterm: ^4.0.0
+  flutter_pty: ^0.4.2
+  ffi: ^2.2.0
+  shader_graph: 0.1.3
+  flutter_shaders: ^0.1.3
+  json_annotation: ^4.9.0
+  get: ^4.7.3
+  responsive_framework: ^1.5.1
+  # file_manager:
+  #   path: /Users/Laurie/Desktop/nightmare-space/file_manager_private
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  ffigen: ^11.0.0
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.14
+  json_serializable: ^6.9.4
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/twrp_keyboard_layouts.json
+    - assets/
+    - assets/textures/
+    - assets/arp_flash.sh
+  fonts:
+    - family: NotoSansCJK
+      fonts:
+        - asset: fonts/NotoSansCJKsc-Regular.ttf
+    - family: DroidSansMono
+      fonts:
+        - asset: fonts/DroidSansMono.ttf
+  shaders:
+    - shaders/frame/IFrame Test.frag
+    - shaders/mouse/Pentagonal Conway's game BufferA.frag
+    - shaders/mouse/Pentagonal Conway's game.frag
+    # keyboard
+    - shaders/keyboard/Keyboard Debug Overlay.frag
+    - shaders/keyboard/Keyboard Test.frag
+    # game
+    - shaders/game_ported/Bricks Game.frag
+    - shaders/game_ported/Bricks Game BufferA.frag
+    - shaders/game_ported/Bricks Game BufferB.frag
+    - shaders/game_ported/Pacman Game.frag
+    - shaders/game_ported/Pacman Game BufferA.frag
+    - shaders/game_ported/Pacman Game BufferB.frag
+    # text
+    - shaders/text/Text Texture.frag
+    # multi-pass
+    - shaders/multi_pass/MacOS Monterey wallpaper.frag
+    - shaders/multi_pass/MacOS Monterey wallpaper BufferA.frag
+    - shaders/multi_pass/Static Vec4 Grid A.frag
+    - shaders/multi_pass/expansive reaction-diffusion BufferA.frag
+    - shaders/multi_pass/expansive reaction-diffusion BufferB.frag
+    - shaders/multi_pass/expansive reaction-diffusion BufferC.frag
+    - shaders/multi_pass/expansive reaction-diffusion BufferD.frag
+    - shaders/multi_pass/expansive reaction-diffusion.frag
+    # wrap & filter
+    - shaders/wrap/Wrap Debug.frag
+    - shaders/wrap/Black Hole ODE Geodesic Solver.frag
+    - shaders/wrap/Broken Time Gate.frag
+    - shaders/wrap/Goodbye Dream Clouds.frag
+    - shaders/wrap/Tissue.frag
+    - shaders/wrap/Transition Burning.frag
+    - shaders/wrap/Inverse Bilinear.frag
+    - shaders/touch_simple.frag
+ffigen:
+  name: AuroraBindings
+  output: lib/generated_bindings.dart
+
+  headers:
+    entry-points:
+      - native/tw_settings_ffi.h
+      - native/tw_power_ffi.h
+      - native/tw_display_ffi.h
+
+  compiler-opts:
+    - "-Inative"
+
+dependency_overrides:
+  retrofit: any
+  intl: any
+  xterm: ^4.0.0

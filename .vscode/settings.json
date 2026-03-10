@@ -1,0 +1,7 @@
+{
+    "editor.formatOnSave": true,
+    "dart.lineLength": 120,
+    "[json]": {
+        "editor.formatOnSave": false,
+    },
+}

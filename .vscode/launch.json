@@ -1,0 +1,64 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "recovery_demo_app (Software)",
+            "request": "launch",
+            "type": "dart",
+            "env": {
+                "FORT_RENDERER": "software",
+            },
+            // TODO: 有没可能可以不指定 engine
+            "args": [
+                // 移除 -d 就可以运行在 VS Code 选择的设备上
+                // "-d",
+                // "rec",
+                "--local-engine-src-path",
+                "/Users/Laurie/Desktop/nightmare-space/Android_Recovery/Flutter_On_Recovery/flutter-3.29-new/engine/src",
+                "--local-engine",
+                "android_debug_unopt_arm64_embedder_software",
+                "--local-engine-host",
+                "host_debug_unopt_arm64"
+            ]
+        },
+        {
+            "name": "recovery_demo_app (Vulkan)",
+            "request": "launch",
+            "type": "dart",
+            "env": {
+                "FORT_RENDERER": "vulkan",
+            },
+            "args": [
+                // "-d",
+                // "rec",
+                "--local-engine-src-path",
+                "/Users/Laurie/Desktop/nightmare-space/Android_Recovery/Flutter_On_Recovery/flutter-3.29-new/engine/src",
+                "--local-engine",
+                "android_debug_unopt_arm64_embedder_vulkan",
+                "--local-engine-host",
+                "host_debug_unopt_arm64"
+            ]
+        },
+        {
+            "name": "recovery_demo_app (SwiftShader)",
+            "request": "launch",
+            "type": "dart",
+            "env": {
+                "FORT_RENDERER": "swiftshader",
+            },
+            "args": [
+                // "-d",
+                // "rec",
+                "--local-engine-src-path",
+                "/Users/Laurie/Desktop/nightmare-space/Android_Recovery/Flutter_On_Recovery/flutter-3.29-new/engine/src",
+                "--local-engine",
+                "android_debug_unopt_arm64_embedder_vulkan",
+                "--local-engine-host",
+                "host_debug_unopt_arm64"
+            ]
+        },
+    ]
+}
