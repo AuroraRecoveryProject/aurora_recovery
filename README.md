@@ -10,27 +10,34 @@
 
 ## 解决什么问题？
 
-在尝试自己编译 TWRP 的过程中，发现整个过程其实比较复杂，TWRP 需要依赖整个 AOSP 的编译环境，占用磁盘非常大，第一次编译时间非常长，后续命中缓存编译时间会好一些，但对于 TWRP 的开发，我并不清楚是如何进行的，是不是只能盲写代码，然后 push recovery 这个二进制到设备上运行测试，还是需要完整 flash recovery 镜像，也许有一些现有的方法，例如 TWRP 的 UI 是基于 XMl 编写的，可能可以实现直接预览，但无论如何，整个开发流程效率极低
-
-于是我将 Flutter 带到了 Android Recovery 环境中，开发 Aurora Recovery，和开发普通 Flutter App 没有任何差异，借助 flutter 的 custom devices，保存后 hot reload，以及 hot restart，都和普通开发完全一样
-
-总结：
-
 - 开发效率提升：Flutter 的 hot reload 和 hot restart 大大缩短了开发周期，极大提升了开发效率，有开发效率，这个 Recovery 才能快速迭代，快速完善，快速适配更多设备
 - Flutter 丰富的生态：Flutter 拥有丰富的第三方库和工具，可以轻松集成各种功能，例如网络请求、数据存储、动画效果等，这些都可以直接在 Recovery 中使用，而不需要重新开发
 - 跨平台: 虽然是只运行在 Android Recovery 环境，但如果仅仅调试 UI，可以通过其他任意设备调试
+- 十年前的 UI 风格也许不适应当下了
+
+在尝试自己编译 TWRP 的过程中，发现整个过程其实比较复杂，TWRP 需要依赖整个 AOSP 的编译环境，占用磁盘非常大，第一次编译时间非常长
+
+后续命中缓存编译时间会好一些，但对于 TWRP 的开发，我并不清楚是如何进行的，是不是只能盲写代码，然后 push recovery 这个二进制到设备上运行测试，还是需要完整 flash recovery 镜像，也许有一些现有的方法
+
+例如 TWRP 的 UI 是基于 XML 编写的，可能可以实现直接预览，但无论如何，整个开发流程效率极低
+
+于是我将 Flutter 带到了 Android Recovery 环境中，开发 Aurora Recovery，和开发普通 Flutter App 没有任何差异，借助 flutter 的 custom devices，保存后 hot reload，以及 hot restart，都和普通开发完全一样
 
 ## 如何实现？
 
 ### 1.为 flutter-embedded-linux 开发一个新的 DRM-DUMB backend
 
-基于 sony 的 [flutter-embedded-linux](https://github.com/sony/flutter-embedded-linux)，原始的代码，是强依赖 Linux 的 GPU 环境的，即使是flutter-embedded-linux/examples/flutter-drm-gbm-backend 这个 backend，虽然是直接操作 drm 设备节点，但在 Android Recovery 模式下仍然不可用
+基于 sony 的 [flutter-embedded-linux](https://github.com/sony/flutter-embedded-linux)，原始的代码，是强依赖 Linux 的 GPU 环境的，即使是 flutter-embedded-linux/examples/flutter-drm-gbm-backend 这个 backend，虽然是直接操作 drm 设备节点，但在 Android Recovery 模式下仍然不可用
 
 而参考 TWRP 的代码，其中有两个渲染库，分别是 minui/minuitwrp，后者对现代的设备支持更好，有针对设置 plane 通道等操作，前者在一加15和一加 Pad2 Pro 上的 RGB demo 展示都不正确
 
 所以 DRM-DUMB backend 的实现初步就是将 Flutter 每帧渲染的数据通单次 CPU 拷贝，再使用 minuitwrp 送显
 
 ### 2.自定义 Flutter Engine
+
+Flutter Engine 也有大量的修改适配，来支持 Android Recovery 环境运行，仓库是开源的
+
+https://github.com/AuroraRecoveryProject/flutter/tree/3.29.3-recovery
 
 #### 2.1 CPU Only
 
@@ -53,6 +60,8 @@
 - 字体库补齐
 - GPU 驱动挂载
 - 动态库补齐
+
+custom-devices.json 的配置示例如下：
 
 ```json
 {
@@ -113,6 +122,8 @@
 
 说明：如果需要在同一个设备定义下切换渲染后端（例如 Vulkan / SwiftShader），可以通过环境变量传给 `fort` 决策（例如 `FORT_RENDERER=software|vulkan|swiftshader`），而不是再定义多个 device id。
 
+详见 [launch.json](.vscode/launch.json)
+
 ### 5.底层库独立
 
 - TWRP 的代码和UI是耦合在一起的的。需要将部分能力拆分成可以独立使用的库，例如 Setting，这样可以保持 ARP 和 TWRP 的设置同步
@@ -134,32 +145,7 @@ Dynamic section at offset 0x81f0 contains 35 entries:
   0x0000000000000001 (NEEDED)          Shared library: [libm.so]
   0x0000000000000001 (NEEDED)          Shared library: [libdl.so]
   0x000000000000000e (SONAME)          Library soname: [libtwrp_core_ffi.so]
-  0x000000000000001e (FLAGS)           BIND_NOW 
-  0x000000006ffffffb (FLAGS_1)         NOW 
-  0x0000000060000011 (ANDROID_RELA)    0x2138
-  0x0000000060000012 (ANDROID_RELASZ)  211 (bytes)
-  0x0000000000000009 (RELAENT)         24 (bytes)
-  0x000000006fffe000 (ANDROID_RELR)    0x2210
-  0x000000006fffe001 (ANDROID_RELRSZ)  0x10
-  0x000000006fffe003 (ANDROID_RELRENT) 0x8
-  0x0000000000000017 (JMPREL)          0x2220
-  0x0000000000000002 (PLTRELSZ)        1680 (bytes)
-  0x0000000000000003 (PLTGOT)          0x8450
-  0x0000000000000014 (PLTREL)          RELA
-  0x0000000070000001 (AARCH64_BTI_PLT) 0
-  0x0000000000000006 (SYMTAB)          0x338
-  0x000000000000000b (SYMENT)          24 (bytes)
-  0x0000000000000005 (STRTAB)          0xea4
-  0x000000000000000a (STRSZ)           4751 (bytes)
-  0x000000006ffffef5 (GNU_HASH)        0xdc8
-  0x0000000000000019 (INIT_ARRAY)      0x81e8
-  0x000000000000001b (INIT_ARRAYSZ)    8 (bytes)
-  0x000000000000001a (FINI_ARRAY)      0x81d8
-  0x000000000000001c (FINI_ARRAYSZ)    16 (bytes)
-  0x000000006ffffff0 (VERSYM)          0xcc8
-  0x000000006ffffffe (VERNEED)         0xd94
-  0x000000006fffffff (VERNEEDNUM)      1
-  0x0000000000000000 (NULL)            0x0
+  ***
 ```
 
 其中的 `android.hardware.health@2.0.so/libhidlbase.so` 等都不需要管
@@ -169,6 +155,7 @@ Dynamic section at offset 0x81f0 contains 35 entries:
 ## 功能
 
 - 支持多指并解决 TWRP 单指快速点击，大量事件丢失的问题
+- 待补
 
 ## 架构设计
 
@@ -208,42 +195,42 @@ Dynamic section at offset 0x81f0 contains 35 entries:
                                       │
                                       │ Callbacks + configs provided by embedder
                                       v
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Embedder (platform-specific: Recovery runner)                                                │
-│                                                                                              │
-│  ┌──────────────────────────────┐   ┌───────────────────────────────┐                        │
-│  │ Thread / TaskRunner Setup    │   │ Event Loop Interop            │                        │
-│  │ (UI/Raster/IO/Platform)      │   │ (epoll path; avoid libandroid)│                        │
-│  └──────────────────────────────┘   └───────────────────────────────┘                        │
-│  ┌──────────────────────────────┐   ┌──────────────────────────────┐                         │
-│  │ App Packaging (Bundle)       │   │ Native Plugins (optional)    │                         │
-│  │ - icudtl.dat                 │   │ - MethodChannel/EventChannel │                         │
-│  │ - flutter_assets/*           │   │ - minimal in Recovery        │                         │
-│  │ - libapp.so (AOT only)       │   └──────────────────────────────┘                         │
-│  └──────────────────────────────┘                                                            │
-│  ┌──────────────────────────────────────────────────────────────────────────┐                │
-│  │ Render Surface Setup (DRM-DUMB)                                          │                │
-│  │  - KMS/DRM dumb buffers                                                  │                │
-│  │  - PresentSoftwareBitmap/PresentBuffer                                   │                │
-│  └──────────────────────────────────────────────────────────────────────────┘                │
-│  ┌──────────────────────────────────────────────────────────────────────────┐                │
-│  │ Input (Recovery)                                                         │                │
-│  │  - minuitwrp touch API → Flutter pointer/key events                      │                │
-│  └──────────────────────────────────────────────────────────────────────────┘                │
-│  Vulkan mode extra (when enabled):                                                           │
-│  ┌──────────────────────────────────────────────────────────────────────────┐                │
-│  │ Vulkan loader/driver chain                                               │                │
-│  │  libvulkan.so → /vendor/lib64/hw/vulkan.adreno.so                        │                │
-│  │  (often also) libc++.so / libnativewindow.so                             │                │
-│  └──────────────────────────────────────────────────────────────────────────┘                │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│ Embedder (platform-specific: Recovery runner)                                            │
+│                                                                                          │
+│  ┌──────────────────────────────┐   ┌───────────────────────────────┐                    │
+│  │ Thread / TaskRunner Setup    │   │ Event Loop Interop            │                    │
+│  │ (UI/Raster/IO/Platform)      │   │ (epoll path; avoid libandroid)│                    │
+│  └──────────────────────────────┘   └───────────────────────────────┘                    │
+│  ┌──────────────────────────────┐   ┌──────────────────────────────┐                     │
+│  │ App Packaging (Bundle)       │   │ Native Plugins (optional)    │                     │
+│  │ - icudtl.dat                 │   │ - MethodChannel/EventChannel │                     │
+│  │ - flutter_assets/*           │   │ - minimal in Recovery        │                     │
+│  │ - libapp.so (AOT only)       │   └──────────────────────────────┘                     │
+│  └──────────────────────────────┘                                                        │
+│  ┌──────────────────────────────────────────────────────────────────────────┐            │
+│  │ Render Surface Setup (DRM-DUMB)                                          │            │
+│  │  - KMS/DRM dumb buffers                                                  │            │
+│  │  - PresentSoftwareBitmap/PresentBuffer                                   │            │
+│  └──────────────────────────────────────────────────────────────────────────┘            │
+│  ┌──────────────────────────────────────────────────────────────────────────┐            │
+│  │ Input (Recovery)                                                         │            │
+│  │  - minuitwrp touch API → Flutter pointer/key events                      │            │
+│  └──────────────────────────────────────────────────────────────────────────┘            │
+│  Vulkan mode extra (when enabled):                                                       │
+│  ┌──────────────────────────────────────────────────────────────────────────┐            │
+│  │ Vulkan loader/driver chain                                               │            │
+│  │  libvulkan.so → /vendor/lib64/hw/vulkan.adreno.so                        │            │
+│  │  (often also) libc++.so / libnativewindow.so                             │            │
+│  └──────────────────────────────────────────────────────────────────────────┘            │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       │ Display scanout
                                       v
-┌──────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Kernel / Hardware                                                                            │
-│  DRM (e.g., msm_drm) + KMS → panel/display controller → screen                               │
-└──────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│ Kernel / Hardware                                                                        │
+│  DRM (e.g., msm_drm) + KMS → panel/display controller → screen                           │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 
