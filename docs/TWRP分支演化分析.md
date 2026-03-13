@@ -397,7 +397,7 @@ TW_NO_NETWORK := true   # 所有网络相关模块均不编译
 | `Provide workaround for backup/restore issues` | 备份还原稳定性修复（koaaN 贡献） |
 | `Cater for Meizu touch mapping` | 魅族触控坐标映射支持（`TW_MEIZU_TOUCH_MAPPING`） |
 | `fonts: Use NotoSansCJKsc` | 更换为 Noto Sans CJK SC 字体，改善中文显示 |
-| `recovery: Automatically patch security patch date` | 刷机后自动修补安全补丁日期 |
+| `recovery: Automatically patch security patch date` | 刷机前自动修补安全补丁日期 |
 | `recovery: Combined install zip/img at install page` | 安装页面合并 zip 和 img 入口为一个界面 |
 | `Use /persist/TWRP/.twrp_settings` | TWRP 配置持久化路径从 `/data` 改为 `/persist`，格式化 data 后也不丢失设置 |
 
