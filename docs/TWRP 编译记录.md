@@ -229,21 +229,7 @@ dmesg -T | egrep -i 'out of memory|oom-killer|killed process' | tail -n 50
 
    如果在 Docker/虚拟机里编译，容器/VM 的内存上限太低也会导致 `Killed`。把内存调到 **16GB+（推荐 20GB+）**。
 
-### Q4: Init 脚本验证失败 (host_init_verifier)
-
-**报错:**
-编译至 75% 左右时 `host_init_verifier` 失败。
-
-**原因:**
-新版 Android 对 `init.rc` 文件的语法安全性检查更严格，部分版本要求服务必须显式定义运行用户。
-
-**注意：此问题为偶现**，并非必现。实测在未添加 `user root` 的情况下同样可以编译通过。
-可能原因是：服务已有显式 `seclabel`（如 `u:r:recovery:s0`）时，`host_init_verifier` 对 `user` 字段的检查会跳过；不同构建环境的 verifier 二进制版本不同，检查规则也有差异。
-
-**如果遇到此报错，可尝试以下解决方案:**
-修改 `bootable/recovery/etc/init.rc`，为 `service recovery`、`service adbd`、`service charger` 添加 `user root` 配置。
-
-### Q5: Recovery 卡第一屏但 ADB 可连接（`/system/bin/recovery` 反复重启）
+### Q4: Recovery 卡第一屏但 ADB 可连接（`/system/bin/recovery` 反复重启）
 
 **现象:**
 
@@ -287,7 +273,103 @@ TW_INCLUDE_RESETPROP := true
 TARGET_RECOVERY_DEVICE_MODULES += libresetprop
 ```
 
-## 3. TWRP 16 新特性笔记
+### Q5: Init 脚本验证失败 (host_init_verifier)
+
+在 Android 16（A16）构建 TWRP recovery 时，构建系统会对 recovery 的 init 脚本（`bootable/recovery/etc/*.rc`）做静态校验。其中一个关键步骤是运行 `host_init_verifier`（主机侧 init 脚本验证器）。
+
+遇到的错误形如：
+
+- `No user specified for service 'charger'`
+- `No user specified for service 'recovery'`
+- `No user specified for service 'adbd'`
+
+这会直接导致 `ninja` 失败并中断构建。
+
+#### 为什么会报错？
+
+Android init 的 `service` stanza 用于定义要启动的进程，例如：
+
+```rc
+service recovery /system/bin/recovery
+    seclabel u:r:recovery:s0
+```
+
+在较新的构建/校验规则下，**service 必须显式指定运行用户（`user ...`）**。即使在某些版本/实现里“未写 user 时默认是 root”，静态校验也不会去“猜默认值”，而是要求配置写清楚：
+
+- 避免因为默认值差异导致的行为不一致
+- 让审计/安全检查更明确（服务以哪个 UID 运行必须一眼可见）
+- 防止后来有人改动 init 解析逻辑/默认值时引入隐蔽的权限回退或提升
+
+因此，**缺少 `user` 被当作配置错误而不是警告**。
+
+#### 为什么选择 `user root`
+
+对 recovery 场景里的这些服务（`charger` / `recovery` / `adbd` / `healthd`），在绝大多数设备与 recovery 设计中，它们需要：
+
+- 访问设备节点（`/dev/*`）
+- 挂载/格式化分区
+- 与 binder/ueventd/属性服务交互
+- 执行 recovery 流程与调试（尤其是 `adbd`）
+
+这些能力通常要求 root 权限配合适当的 SELinux domain（`seclabel ...`）。因此采用：
+
+```rc
+user root
+```
+
+是**最小且与预期一致**的修复：
+
+- 只补齐 verifier 所要求的字段
+- 不改变已有的 SELinux `seclabel` 语义
+- 不引入新的行为路径（相比把它改成 `system`/`shell` 等更可能改变权限边界）
+
+#### 这个修改的影响
+
+- **构建层面**：让 `host_init_verifier` 通过，从而恢复 `m recoveryimage` 的构建链路。
+- **运行时层面**：如果这些服务此前本来就是以 root 运行（常见情况），显式 `user root` 通常不会改变实际行为，只是把“隐含默认”变成“明确配置”。
+- **安全层面**：这不是“放宽权限”，而是把权限写清楚；真正的权限边界仍主要由 `seclabel` 对应的 SELinux domain 决定。
+
+#### 本次涉及到的文件（补齐 `user root`）
+
+这些文件位于源码树：`bootable/recovery/etc/`
+
+- `init.rc`：`service charger` / `service recovery` / `service adbd`
+- `init.recovery.hlthchrg26.rc`：`service charger /charger -r`
+- `init.recovery.service22.rc`：`service recovery /system/bin/recovery`
+- `init.recovery.hlthchrg25.rc`：`service healthd /system/bin/healthd -r`
+
+> 注：具体有哪些文件需要补齐，取决于你这棵树里有哪些 rc 会被 verifier 扫描，以及哪些 service stanza 缺字段。
+
+#### 如何自检：确认没有遗漏
+
+可以用一个简单脚本扫描 `bootable/recovery/etc/*.rc`，找出缺少 `user` 的 `service`：
+
+```bash
+python3 -c "import re, pathlib; root=pathlib.Path('bootable/recovery/etc'); missing=[]; 
+for p in sorted(root.glob('*.rc')):
+ txt=p.read_text(errors='ignore').splitlines(); i=0
+ while i<len(txt):
+  m=re.match(r'\s*service\s+(\S+)\s+(.+)$', txt[i]);
+  if not m: i+=1; continue
+  svc=m.group(1); j=i+1; has_user=False
+  while j<len(txt) and not re.match(r'^\S', txt[j]):
+   if re.match(r'\s*user\s+\S+', txt[j]): has_user=True
+   j+=1
+  if not has_user: missing.append((str(p), i+1, svc, txt[i].strip()))
+  i=j
+print('OK' if not missing else 'Found:');
+[print(f'{p}:{ln}: {svc}: {hdr}') for p,ln,svc,hdr in missing];
+print('Total:', len(missing))"
+```
+
+当输出是 `Total: 0` 时，至少“缺 user”这一类 verifier 问题就被清空了。
+
+#### 下一步
+
+- 重新执行构建（例如 `m recoveryimage`），确认不再出现 `No user specified for service ...`。
+- 若出现新的 verifier 报错，按报错指向的 rc 文件继续做同样的“最小补齐”。
+
+## 3. TWRP 16 新特性简介
 
 - **Web 文件管理**: 集成 `libmicrohttpd`，支持通过浏览器访问 Port 80 管理文件（需通过 `adb forward` 映射）。
 - **设置持久化**: 配置文件从 `/data/.twrps` 变更为 `/persist/TWRP/.twrp_settings`，双清不丢失设置。
