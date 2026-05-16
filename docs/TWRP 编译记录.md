@@ -51,8 +51,9 @@ lunch twrp_ossi
 lunch twrp_caihong
 # m will auto-select the number of parallel jobs based on CPU cores
 m recoveryimage
+# get ccahe usuage
+ccache -s
 ```
-
 
 ## 3. 问题记录与解决方案 (Troubleshooting Log)
 
@@ -364,13 +365,5 @@ print('Total:', len(missing))"
 
 当输出是 `Total: 0` 时，至少“缺 user”这一类 verifier 问题就被清空了。
 
-#### 下一步
-
 - 重新执行构建（例如 `m recoveryimage`），确认不再出现 `No user specified for service ...`。
 - 若出现新的 verifier 报错，按报错指向的 rc 文件继续做同样的“最小补齐”。
-
-## 3. TWRP 16 新特性简介
-
-- **Web 文件管理**: 集成 `libmicrohttpd`，支持通过浏览器访问 Port 80 管理文件（需通过 `adb forward` 映射）。
-- **设置持久化**: 配置文件从 `/data/.twrps` 变更为 `/persist/TWRP/.twrp_settings`，双清不丢失设置。
-- **AVB2 自动禁用**: 支持 `TW_AUTO_DISABLE_AVB2 := true`，刷机时自动 Patch vbmeta。
