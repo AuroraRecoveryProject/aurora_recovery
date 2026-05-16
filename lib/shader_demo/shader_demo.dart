@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'examples/custom_uniforms.dart';
 import 'examples/game.dart';
 import 'examples/animation_control.dart';
@@ -16,44 +17,6 @@ import 'examples/text_render.dart';
 import 'examples/wrap.dart';
 
 double narrowWidthThreshold = 600;
-
-class ShaderDemo extends StatelessWidget {
-  const ShaderDemo({super.key});
-
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Shader Graph Example',
-      theme: const CupertinoThemeData(
-        brightness: Brightness.light,
-        primaryColor: Colors.deepPurple,
-      ),
-      onGenerateRoute: (settings) {
-        String? shaderParam;
-        if (kIsWeb) {
-          final uri = Uri.base;
-          shaderParam = uri.queryParameters['example'];
-          debugPrint('URL query parameter "shader": $shaderParam');
-        }
-        if (shaderParam != null && shaderParam.isNotEmpty) {
-          if (shaderParam == 'ReactionDiffusion') {
-            return MaterialPageRoute(
-              builder: (context) => ReactionDiffusionView(),
-              settings: settings,
-            );
-          }
-        }
-
-        return CupertinoPageRoute(
-          builder: (context) => const RootPage(),
-          settings: settings,
-        );
-      },
-    );
-  }
-}
 
 class RootPage extends StatefulWidget {
   const RootPage({super.key});
