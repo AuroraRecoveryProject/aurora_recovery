@@ -207,28 +207,28 @@ dmesg -T | egrep -i 'out of memory|oom-killer|killed process' | tail -n 50
 
 **解决方案 (优先级从高到低):**
 
-1) **增加 swap（推荐优先做）**
+### 增加 swap
 
-   如果已有 4G swap（例如 `/swap.img`），目标扩到 16G 最稳的是 **再新增一个 12G swapfile**：
+如果已有 4G swap（例如 `/swap.img`），目标扩到 16G 最稳的是 **再新增一个 12G swapfile**：
 
-   ```bash
-   # 新增 12G swapfile（4G + 12G = 16G）
-   sudo fallocate -l 12G /swapfile2 || sudo dd if=/dev/zero of=/swapfile2 bs=1M count=12288 status=progress
-   sudo chmod 600 /swapfile2
-   sudo mkswap /swapfile2
-   sudo swapon /swapfile2
+```bash
+# add 
+sudo fallocate -l 16G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+free -hsudo fallocate -l 16G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
 
-   # 验证
-   swapon --show
-   free -h
+# 验证
+swapon --show
+free -h
 
-   # 持久化（开机自动启用）
-   echo '/swapfile2 none swap sw 0 0' | sudo tee -a /etc/fstab
-   ```
-
-2) **提高 Docker/VM 内存上限**
-
-   如果在 Docker/虚拟机里编译，容器/VM 的内存上限太低也会导致 `Killed`。把内存调到 **16GB+（推荐 20GB+）**。
+# 持久化（开机自动启用）
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
 
 ### Q4: Recovery 卡第一屏但 ADB 可连接（`/system/bin/recovery` 反复重启）
 
@@ -367,3 +367,77 @@ print('Total:', len(missing))"
 
 - 重新执行构建（例如 `m recoveryimage`），确认不再出现 `No user specified for service ...`。
 - 若出现新的 verifier 报错，按报错指向的 rc 文件继续做同样的“最小补齐”。
+
+
+## 使用 Docker 进行编译
+
+起初给我 Mac 用的，但是转义损耗太大，编译实在太久
+
+Dockerfile:
+
+```dockerfile
+# 使用 Ubuntu 20.04 作为基础镜像 (Android 编译常用的环境)
+FROM --platform=linux/amd64 ubuntu:20.04
+
+# 设置环境变量，防止 apt 安装过程中出现交互式提示
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 更新软件源并安装基础编译工具
+RUN apt-get update
+RUN apt-get install -y \ 
+    python3 \
+    rsync \
+    openssl \
+    zip
+# 创建工作目录
+WORKDIR /twrp-source
+
+# link python3 to python (有些构建脚本可能需要 python 命令)
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+# 容器启动时的默认命令 (可以是 bash)
+CMD ["/bin/bash"]
+```
+
+### 构建 Docker 镜像
+
+```bash
+#!/bin/bash
+cd "$(dirname "$0")"
+docker build -t twrp-build-env .
+```
+
+### 运行 Docker 容器
+
+```bash
+#!/bin/bash
+DIR="$(cd "$(dirname "$0")" && pwd)"
+CONTAINER_NAME="twrp-workspace"
+OUT_VOLUME="twrp-out"
+
+set -e
+
+ensure_out_volume() {
+    if ! docker volume inspect "${OUT_VOLUME}" >/dev/null 2>&1; then
+        echo "Creating docker volume: ${OUT_VOLUME}"
+        docker volume create "${OUT_VOLUME}" >/dev/null
+    fi
+}
+
+ensure_out_volume
+
+if [ "$(docker ps -aq -f name=^${CONTAINER_NAME}$)" ]; then
+    echo "Starting existing container: ${CONTAINER_NAME}"
+    echo "Note: if this container was created before OUT_DIR_COMMON_BASE was added, run:"
+    echo "  docker rm -f ${CONTAINER_NAME}"
+    echo "Then re-run this script to recreate it with the out volume." 
+    docker start -ai "${CONTAINER_NAME}"
+else
+    echo "Creating new container: ${CONTAINER_NAME}"
+    docker run -it --privileged --name "${CONTAINER_NAME}" \
+      -e OUT_DIR_COMMON_BASE=/work/out \
+      -v "${OUT_VOLUME}":/work/out \
+      -v "$DIR":/twrp-source \
+      twrp-build-env
+fi
+```
