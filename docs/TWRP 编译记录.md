@@ -166,6 +166,8 @@ diskutil apfs addVolume disk3 APFSX android_source
 
 ### Q2: Soong 编译工具崩溃 (Panic in prebuilt_etc.go)
 
+> 这个后来好像没了，本地编译的源码，也没有这块的修改，不过保留记录
+
 **报错:**
 
 ```text
@@ -209,7 +211,7 @@ dmesg -T | egrep -i 'out of memory|oom-killer|killed process' | tail -n 50
 
 ### 增加 swap
 
-如果已有 4G swap（例如 `/swap.img`），目标扩到 16G 最稳的是 **再新增一个 12G swapfile**：
+如果已有 4G swap（例如 `/swap.img`），直接加 16G swap：
 
 ```bash
 # add 
@@ -271,8 +273,17 @@ I init    : Service 'recovery' ... exited with status 1
 
 ```makefile
 TW_INCLUDE_RESETPROP := true
-TARGET_RECOVERY_DEVICE_MODULES += libresetprop
 ```
+
+bootable/recovery/Android.mk:579 — 决定是否将 resetprop 加入编译模块列表：
+
+```makefile
+ifeq ($(TW_INCLUDE_RESETPROP), true)
+    TWRP_REQUIRED_MODULES += resetprop
+endif
+```
+
+所以没必要再加 `TARGET_RECOVERY_DEVICE_MODULES += libresetprop`
 
 ### Q5: Init 脚本验证失败 (host_init_verifier)
 
@@ -280,28 +291,82 @@ TARGET_RECOVERY_DEVICE_MODULES += libresetprop
 
 遇到的错误形如：
 
-- `No user specified for service 'charger'`
-- `No user specified for service 'recovery'`
-- `No user specified for service 'adbd'`
+```bash
+host_init_verifier: out/soong/.intermediates/bootable/recovery/init_recovery.rc/android_recovery_arm64_armv8-a_oryon/init.rc: 125: No user specified for service 'charger', so it would have been root.
+host_init_verifier: out/soong/.intermediates/bootable/recovery/init_recovery.rc/android_recovery_arm64_armv8-a_oryon/init.rc: 130: No user specified for service 'recovery', so it would have been root.
+host_init_verifier: out/soong/.intermediates/bootable/recovery/init_recovery.rc/android_recovery_arm64_armv8-a_oryon/init.rc: 136: No user specified for service 'adbd', so it would have been root.
+host_init_verifier: Failed to parse init scripts with 3 error(s).
+```
 
 这会直接导致 `ninja` 失败并中断构建。
 
 #### 为什么会报错？
 
-Android init 的 `service` stanza 用于定义要启动的进程，例如：
+校验链路入口：system/core/init/host_init_verifier.cpp
 
-```rc
-service recovery /system/bin/recovery
-    seclabel u:r:recovery:s0
+```bash
+bootable/recovery/etc/init.rc
+→ Android.bp:179 prebuilt_etc
+    → Soong 拷贝到 intermediates
+    → host_init_verifier 解析校验
 ```
 
-在较新的构建/校验规则下，**service 必须显式指定运行用户（`user ...`）**。即使在某些版本/实现里“未写 user 时默认是 root”，静态校验也不会去“猜默认值”，而是要求配置写清楚：
+主函数在 第 208 行 main()，核心逻辑：
 
-- 避免因为默认值差异导致的行为不一致
-- 让审计/安全检查更明确（服务以哪个 UID 运行必须一眼可见）
-- 防止后来有人改动 init 解析逻辑/默认值时引入隐蔽的权限回退或提升
+```c
+// 第 299 行：创建 Parser，注册 service 段解析器
+parser.AddSectionParser("service", std::make_unique<ServiceParser>(&sl, GetSubcontext()));
 
-因此，**缺少 `user` 被当作配置错误而不是警告**。
+// 第 311 行：解析 init.rc
+parser.ParseConfigFileInsecure(*argv, true);
+
+// 第 319 行：累计所有错误
+size_t failures = parser.parse_error_count() + am.CheckAllCommands() + sl.CheckAllCommands();
+
+// 核心校验：system/core/init/service_parser.cpp:679-687
+
+if (service_->proc_attr_.parsed_uid == std::nullopt) {
+    if (kAlwaysErrorUserRoot ||
+        android::base::GetIntProperty("ro.vendor.api_level", 0) > 202404) {
+        return Error() << "No user specified for service '" << service_->name()
+                        << "', so it would have been root.";
+    } else {
+        LOG(WARNING) << "No user specified for service '" << service_->name()
+                    << "', so it is root.";
+    }
+}
+```
+
+逻辑：ServiceParser::EndSection() 在解析完一个 service { } 块后，检查 parsed_uid 是否为空（即没写
+user xxx）。分两种情况：
+
+| 条件 | 行为 |
+| --- | --- |
+| `kAlwaysErrorUserRoot == true`（host 构建时为 true） | `return Error()` 阻止编译 |
+| `ro.vendor.api_level <= 202404`（Android U 及更早） | `LOG(WARNING)` 仅警告，编译通过 |
+
+### `ro.vendor.api_level` 与 Android 版本对应关系
+
+`202404` 表示 `2024 年 4 月`，对应 Android 15（Vanilla Ice Cream，V）开发周期的起点。
+
+| `ro.vendor.api_level` | 对应版本 |
+| --- | --- |
+| `202208 ~ 202307` | Android 13 (Tiramisu, T) |
+| `202308 ~ 202403` | Android 14 (Upside Down Cake, U) |
+| `202404 ~ 202408` | Android 15 (Vanilla Ice Cream, V) |
+
+---
+
+### 代码逻辑含义
+
+| 条件 | 行为 |
+| --- | --- |
+| `ro.vendor.api_level > 202404` | `ERROR`：Android 15+ 强制要求声明 `user` |
+| `ro.vendor.api_level <= 202404` | `WARNING`：Android 14 及更早版本仅警告 |
+
+---
+
+因此，**Android15(Opus15) 及更高版本缺少 `user` 被当作配置错误而不是警告**。
 
 #### 为什么选择 `user root`
 
@@ -332,12 +397,28 @@ user root
 
 #### 本次涉及到的文件（补齐 `user root`）
 
-这些文件位于源码树：`bootable/recovery/etc/`
+这些文件位于源码树：`bootable/recovery/etc/init.rc`
 
-- `init.rc`：`service charger` / `service recovery` / `service adbd`
-- `init.recovery.hlthchrg26.rc`：`service charger /charger -r`
-- `init.recovery.service22.rc`：`service recovery /system/bin/recovery`
-- `init.recovery.hlthchrg25.rc`：`service healthd /system/bin/healthd -r`
+```rc
+service charger /system/bin/charger
+    critical
+    # add line
+    user root
+    seclabel u:r:charger:s0
+
+service recovery /system/bin/recovery
+    user root
+    # add line
+    socket recovery stream 422 system system
+    seclabel u:r:recovery:s0
+
+service adbd /system/bin/adbd --root_seclabel=u:r:su:s0 --device_banner=recovery
+    disabled
+    # add line
+    user root
+    socket adbd stream 660 system system
+    seclabel u:r:adbd:s0
+```
 
 > 注：具体有哪些文件需要补齐，取决于你这棵树里有哪些 rc 会被 verifier 扫描，以及哪些 service stanza 缺字段。
 
@@ -363,11 +444,13 @@ print('OK' if not missing else 'Found:');
 print('Total:', len(missing))"
 ```
 
-当输出是 `Total: 0` 时，至少“缺 user”这一类 verifier 问题就被清空了。
+```bash
+bootable/recovery/etc/init.recovery.hlthchrg25.rc:3: healthd: service healthd /system/bin/healthd -r
+bootable/recovery/etc/init.recovery.hlthchrg26.rc:3: charger: service charger /charger -r
+bootable/recovery/etc/init.recovery.service22.rc:4: recovery: service recovery /system/bin/recovery
+```
 
-- 重新执行构建（例如 `m recoveryimage`），确认不再出现 `No user specified for service ...`。
-- 若出现新的 verifier 报错，按报错指向的 rc 文件继续做同样的“最小补齐”。
-
+实际上面这类不补也能正常编译，保证编译的情况下尽量少改
 
 ## 使用 Docker 进行编译
 
