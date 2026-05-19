@@ -356,19 +356,25 @@ adb shell cp /vendor/bin/wpa_cli /tmp/oem/bin/
 adb shell cp /vendor/etc/wifi/wpa_supplicant.conf /tmp/oem/
 adb shell cp /vendor/etc/vintf/manifest/android.hardware.wifi.supplicant.xml /tmp/oem/vintf/
 adb shell cp /odm/etc/vintf/manifest/oplus_aidl_wifi_service_device_manifest.xml /tmp/odm_manifest/
+
 # 复制 so 库
-adb shell "cp /vendor/lib64/vendor.qti.hardware.wifi.supplicant-V1-ndk.so /tmp/oem/lib64/"
-adb shell "cp /vendor/lib64/libkeystore-engine-wifi-hidl.so /tmp/oem/lib64/"
-adb shell "cp /vendor/lib64/vendor.oplus.hardware.wifi.supplicant-V5-ndk.so /tmp/oem/lib64/"
-adb shell "cp /vendor/lib64/libcert_parse.wpa_s.so /tmp/oem/lib64/"
-adb shell "cp /vendor/lib64/android.hardware.wifi.supplicant-V4-ndk.so /tmp/oem/lib64/"
-# android.hardware.security.keymint-V1-ndk.so <- android.system.keystore2-V1-ndk.so
-adb shell "cp /vendor/lib64/android.hardware.security.keymint-V1-ndk.so /tmp/oem/lib64/"
-# android.hardware.security.secureclock-V1-ndk.so <- android.system.keystore2-V1-ndk.so
-adb shell "cp /vendor/lib64/android.hardware.security.secureclock-V1-ndk.so /tmp/oem/lib64/"
-adb shell "cp /vendor/lib64/android.system.keystore2-V1-ndk.so /tmp/oem/lib64/"
-# android.hardware.wifi.common-V2-ndk.so <- android.hardware.wifi.supplicant-V4-ndk.so
-adb shell "cp /vendor/lib64/android.hardware.wifi.common-V2-ndk.so /tmp/oem/lib64/"
+VENDOR_LIBS=(
+    vendor.qti.hardware.wifi.supplicant-V1-ndk.so
+    libkeystore-engine-wifi-hidl.so
+    vendor.oplus.hardware.wifi.supplicant-V5-ndk.so
+    libcert_parse.wpa_s.so
+    android.hardware.wifi.supplicant-V4-ndk.so
+    android.hardware.security.keymint-V1-ndk.so
+    android.system.keystore2-V1-ndk.so
+    # android.hardware.security.secureclock-V1-ndk.so <- android.system.keystore2-V1-ndk.so
+    android.hardware.security.secureclock-V1-ndk.so
+    # android.hardware.wifi.common-V2-ndk.so <- android.hardware.wifi.supplicant-V4-ndk.so
+    android.hardware.wifi.common-V2-ndk.so
+    # android.hardware.security.keymint-V1-ndk.so <- android.system.keystore2-V1-ndk.so
+)
+for lib in "${VENDOR_LIBS[@]}"; do
+    adb shell "cp /vendor/lib64/$lib /tmp/oem/lib64/"
+done
 ```
 
 ## Step 8：启动 qrtr-ns / cnss-daemon（当前实测可选）
@@ -523,12 +529,13 @@ a4:a9:30:83:b4:d2 5200 -26 [WPA2-PSK-CCMP][WPS][ESS] Laurie Lin 5G
 ### 12.2 示例：连接 `Laurie Lin 5G`
 
 ```bash
-WPA="/tmp/oem/bin/wpa_cli  -p /tmp/recovery/sockets -i wlan0"
+WPA="wpa_cli  -p /tmp/recovery/sockets -i wlan0"
 # 返回新网络的 ID（整数）
 ID=$(adb shell $WPA add_network | tail -1)
 adb shell $WPA set_network $ID ssid '\"Laurie Lin 5G\"'
 adb shell $WPA set_network $ID psk '\"906262255\"'
 # 下面四行和自编译 wpa_cli/wpa_supplicant 不一样，但是没有是连接不上的
+# TODO: No，不要啊，下面代码不是上面的原因(2026.05.19)
 adb shell $WPA set_network $ID key_mgmt WPA-PSK
 adb shell $WPA set_network $ID proto RSN
 adb shell $WPA set_network $ID pairwise CCMP

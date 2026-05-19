@@ -623,8 +623,12 @@ Lease of 192.168.31.150 obtained, lease time 43200 from server 192.168.31.1
 # /system_root/system/lib64
 export LD_LIBRARY_PATH=/system_root/system/lib64
 export PATH=/system_root/system/bin:$PATH
+# 启用网卡
 ip link set wlan0 up
+# 查看当前状态
+ip addr show wlan0
 ip addr flush dev wlan0
+# 手动添加 IP 和路由
 ip addr add 192.168.31.150/24 dev wlan0
 ip route add default via 192.168.31.1 dev wlan0
 ip route
