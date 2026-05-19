@@ -90,6 +90,7 @@ class VideoPlayerWithControls extends StatefulWidget {
 class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
   late VideoPlayerController _controller;
   bool _initialized = false;
+  double? _dragProgress;
 
   @override
   void initState() {
@@ -157,20 +158,39 @@ class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
                   ),
                   Expanded(
                     child: Slider(
-                      value: _controller.durationMs > 0
-                          ? _controller.positionMs /
-                              _controller.durationMs.toDouble()
-                          : 0,
+                      value: _dragProgress ??
+                          (_controller.durationMs > 0
+                              ? _controller.positionMs /
+                                  _controller.durationMs.toDouble()
+                              : 0),
+                      onChangeStart: (v) {
+                        setState(() => _dragProgress = v);
+                      },
                       onChanged: (v) {
-                        _controller.seek(
-                          (v * _controller.durationMs).round(),
-                        );
+                        setState(() => _dragProgress = v);
+                      },
+                      onChangeEnd: (v) {
+                        final target = (v * _controller.durationMs).round();
+                        setState(() => _dragProgress = null);
+                        _controller.seek(target);
                       },
                     ),
                   ),
                   Text(
                     _formatDuration(_controller.durationMs),
                     style: const TextStyle(color: Colors.white),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.volume_up, color: Colors.white, size: 18),
+                  SizedBox(
+                    width: 120,
+                    child: Slider(
+                      value: _controller.volumePercent,
+                      min: 0,
+                      max: 100,
+                      divisions: 20,
+                      onChanged: _controller.setVolumePercent,
+                    ),
                   ),
                 ],
               ),

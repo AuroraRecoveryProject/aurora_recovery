@@ -2,7 +2,6 @@
 // 对应 video_player/video_player_ffi.h
 
 import 'dart:ffi';
-import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 
@@ -21,6 +20,9 @@ typedef _VpPauseDart = int Function(Pointer<Void> p);
 
 typedef _VpSeekNative = Int32 Function(Pointer<Void> p, Int64 positionMs);
 typedef _VpSeekDart = int Function(Pointer<Void> p, int positionMs);
+
+typedef _VpSetAwVolumeNative = Int32 Function(Pointer<Void> p, Int32 awVolume);
+typedef _VpSetAwVolumeDart = int Function(Pointer<Void> p, int awVolume);
 
 typedef _VpGetWidthNative = Int32 Function(Pointer<Void> p);
 typedef _VpGetWidthDart = int Function(Pointer<Void> p);
@@ -54,6 +56,7 @@ class VideoPlayerBindings {
   late final _VpPlayDart vpPlay;
   late final _VpPauseDart vpPause;
   late final _VpSeekDart vpSeek;
+  late final _VpSetAwVolumeDart vpSetAwVolume;
   late final _VpGetWidthDart vpGetWidth;
   late final _VpGetHeightDart vpGetHeight;
   late final _VpGetDurationMsDart vpGetDurationMs;
@@ -71,6 +74,7 @@ class VideoPlayerBindings {
     vpPlay = _lib.lookupFunction<_VpPlayNative, _VpPlayDart>('vp_play');
     vpPause = _lib.lookupFunction<_VpPauseNative, _VpPauseDart>('vp_pause');
     vpSeek = _lib.lookupFunction<_VpSeekNative, _VpSeekDart>('vp_seek');
+    vpSetAwVolume = _lib.lookupFunction<_VpSetAwVolumeNative, _VpSetAwVolumeDart>('vp_set_aw_volume');
     vpGetWidth = _lib.lookupFunction<_VpGetWidthNative, _VpGetWidthDart>('vp_get_width');
     vpGetHeight = _lib.lookupFunction<_VpGetHeightNative, _VpGetHeightDart>('vp_get_height');
     vpGetDurationMs = _lib.lookupFunction<_VpGetDurationMsNative, _VpGetDurationMsDart>('vp_get_duration_ms');

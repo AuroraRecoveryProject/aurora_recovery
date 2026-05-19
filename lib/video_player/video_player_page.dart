@@ -16,7 +16,7 @@ class VideoPlayerPage extends StatefulWidget {
 class _VideoPlayerPageState extends State<VideoPlayerPage> {
   String? _videoPath;
   final _pathController = TextEditingController(
-    text: '/tmp/flutter/test.mp4',
+    text: '/sdcard/4K.mkv',
   );
 
   @override

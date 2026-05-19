@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:ffi';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -17,6 +18,8 @@ class VideoPlayerController extends ChangeNotifier {
   ui.Image? _currentFrame;
   Timer? _frameTimer;
   bool _disposed = false;
+  bool _decoding = false;
+  int _frameCount = 0;
 
   int _width = 0;
   int _height = 0;
@@ -24,6 +27,7 @@ class VideoPlayerController extends ChangeNotifier {
   int _positionMs = 0;
   bool _isPlaying = false;
   double _fps = 30.0;
+  double _volumePercent = 80.0;
 
   ui.Image? get currentFrame => _currentFrame;
   int get width => _width;
@@ -32,6 +36,7 @@ class VideoPlayerController extends ChangeNotifier {
   int get positionMs => _positionMs;
   bool get isPlaying => _isPlaying;
   bool get isInitialized => _player != nullptr;
+  double get volumePercent => _volumePercent;
 
   /// 打开视频文件
   Future<bool> open(String path) async {
@@ -51,6 +56,7 @@ class VideoPlayerController extends ChangeNotifier {
     if (_fps <= 0) _fps = 30.0;
 
     print('[VideoPlayer] 打开成功: ${_width}x$_height, 时长: ${_durationMs}ms, 帧率: ${_fps}fps');
+    setVolumePercent(_volumePercent);
     notifyListeners();
     return true;
   }
@@ -81,12 +87,28 @@ class VideoPlayerController extends ChangeNotifier {
 
   void seek(int positionMs) {
     if (_player == nullptr) return;
+    _decoding = false;
     _bindings.vpSeek(_player, positionMs);
+    _positionMs = positionMs;
+    notifyListeners();
+  }
+
+  void setVolumePercent(double percent) {
+    if (_player == nullptr) return;
+    final clamped = math.max(0.0, math.min(100.0, percent));
+    _volumePercent = clamped;
+
+    // 100% -> aw=120（最响安全档），0% -> aw=720（几乎静音）
+    final aw = (720 - (clamped / 100.0) * 600).round();
+    _bindings.vpSetAwVolume(_player, aw);
+    notifyListeners();
   }
 
   void _startFrameLoop() {
     _frameTimer?.cancel();
-    final intervalMs = (1000.0 / _fps).round();
+    final targetFps = _fps > 60.0 ? 60.0 : _fps;
+    final safeFps = targetFps < 1.0 ? 1.0 : targetFps;
+    final intervalMs = (1000.0 / safeFps).round();
     _frameTimer = Timer.periodic(Duration(milliseconds: intervalMs), (_) {
       _pollFrame();
     });
@@ -103,10 +125,14 @@ class VideoPlayerController extends ChangeNotifier {
     // 检查播放状态
     _isPlaying = _bindings.vpIsPlaying(_player) != 0;
     if (!_isPlaying) {
+      print('[VideoPlayer] 播放停止，已消费 $_frameCount 帧');
       _stopFrameLoop();
       notifyListeners();
       return;
     }
+
+    // 上一帧 decodeImageFromPixels 还没完成，跳过
+    if (_decoding) return;
 
     // 更新位置
     _positionMs = _bindings.vpGetPositionMs(_player);
@@ -117,19 +143,23 @@ class VideoPlayerController extends ChangeNotifier {
     final framePtr = _bindings.vpGetFrame(_player);
     if (framePtr == nullptr) return;
 
-    // RGBA 像素数据 → ui.Image
+    // RGBA 像素数据 → ui.Image（双缓冲，读缓冲不会被覆盖）
     final byteCount = _width * _height * 4;
     final pixels = framePtr.asTypedList(byteCount);
 
-    // 复制一份，因为底层缓冲会被下一帧覆盖
-    final pixelsCopy = Uint8List.fromList(pixels);
+    _decoding = true;
+    _frameCount++;
+    if (_frameCount <= 3 || _frameCount % 60 == 0) {
+      print('[VideoPlayer] frame #$_frameCount pos=${_positionMs}ms');
+    }
 
     ui.decodeImageFromPixels(
-      pixelsCopy,
+      pixels,
       _width,
       _height,
       ui.PixelFormat.rgba8888,
       (ui.Image image) {
+        _decoding = false;
         if (_disposed) {
           image.dispose();
           return;
