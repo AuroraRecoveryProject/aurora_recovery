@@ -1,7 +1,10 @@
+import 'package:aurora_recovery/widgets/fake_safearea.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
-import 'global.dart';
+import 'services/global.dart';
+import 'widgets/view_metric.dart';
 
 class ArpDrawer<T> extends StatefulWidget {
   const ArpDrawer({
@@ -19,48 +22,58 @@ class ArpDrawer<T> extends StatefulWidget {
 class _ArpDrawerState<T> extends State<ArpDrawer<T>> {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Material(
-      color: Theme.of(context).colorScheme.surface,
-      child: SizedBox(
-        width: 200,
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
-            child: Column(
-              spacing: 8,
-              children: [
-                for (var item in widget.items)
-                  Builder(
+      color: colorScheme.surface,
+      child: FakeSafearea(
+        top: ResponsiveBreakpoints.of(context).isMobile,
+        child: SizedBox(
+          width: 200,
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: $(12)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: $(8),
+                children: [
+                  for (var item in widget.items)
+                    Builder(
+                      builder: (context) {
+                        bool isSelected = item.value == item.groupValue;
+                        final backgroundColor = isSelected ? colorScheme.surfaceContainerHigh : Colors.transparent;
+                        return Ink(
+                          height: $(48),
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: backgroundColor,
+                            borderRadius: BorderRadius.circular($(8)),
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular($(8)),
+                            onTap: () {
+                              widget.onItemSelected?.call(item.value);
+                            },
+                            child: Center(child: item),
+                          ),
+                        );
+                      },
+                    ),
+                  GetBuilder(
+                    init: Global,
+                    global: false,
                     builder: (context) {
-                      final backgroundColor = item.value == item.groupValue
-                          ? Theme.of(context).colorScheme.surfaceContainerHigh
-                          : Theme.of(context).colorScheme.surfaceContainerLow;
-                      return Ink(
-                        height: 48,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: backgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () {
-                            widget.onItemSelected?.call(item.value);
-                          },
-                          child: Center(child: item),
-                        ),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('CPU:       ${Global.cpuUsage.toStringAsFixed(2)}%'),
+                          Text('GPU:       ${Global.gpuKernelUsage.toStringAsFixed(2)}%'),
+                          Text('Battery: ${Global.batteryValue}'),
+                        ],
                       );
                     },
                   ),
-                GetBuilder(
-                  init: Global,
-                  builder: (context) {
-                    return Text(
-                      'CPU: ${Global.cpuUsage.toStringAsFixed(2)}%\nGPU: ${Global.gpuKernelUsage.toStringAsFixed(2)}%',
-                    );
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -87,8 +100,9 @@ class ArpDrawerItem<T> extends StatefulWidget {
 class _ArpDrawerItemState extends State<ArpDrawerItem> {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return DefaultTextStyle(
-      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: Theme.of(context).colorScheme.onSurface),
+      style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: colorScheme.onSurface),
       child: widget.child,
     );
   }

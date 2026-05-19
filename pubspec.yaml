@@ -2,7 +2,7 @@ name: aurora_recovery
 description: "Aurora Recovery Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+1
+version: 0.0.1+1
 
 environment:
   sdk: ^3.6.0
@@ -20,6 +20,12 @@ dependencies:
   json_annotation: ^4.9.0
   get: ^4.7.3
   responsive_framework: ^1.5.1
+  signale: ^0.0.12
+  example:
+    git:
+      url: https://github.com/nightmare-space/shader_graph
+      path: example
+  flutter_svg: ^2.3.0
   # file_manager:
   #   path: /Users/Laurie/Desktop/nightmare-space/file_manager_private
 
@@ -36,15 +42,17 @@ flutter:
   assets:
     - assets/twrp_keyboard_layouts.json
     - assets/
+    - assets/icons/
     - assets/textures/
-    - assets/arp_flash.sh
+    - assets/system_fonts/
+    - assets/executable/
   fonts:
     - family: NotoSansCJK
       fonts:
-        - asset: fonts/NotoSansCJKsc-Regular.ttf
+        - asset: assets/fonts/NotoSansCJKsc-Regular.ttf
     - family: DroidSansMono
       fonts:
-        - asset: fonts/DroidSansMono.ttf
+        - asset: assets/fonts/DroidSansMono.ttf
   shaders:
     - shaders/frame/IFrame Test.frag
     - shaders/mouse/Pentagonal Conway's game BufferA.frag
@@ -88,6 +96,7 @@ ffigen:
       - native/tw_settings_ffi.h
       - native/tw_power_ffi.h
       - native/tw_display_ffi.h
+      - native/tw_install_ffi.h
 
   compiler-opts:
     - "-Inative"
@@ -96,3 +105,7 @@ dependency_overrides:
   retrofit: any
   intl: any
   xterm: ^4.0.0
+  signale:
+    git: /Users/Laurie/Desktop/nightmare-space/signale
+  shader_graph:
+    git: https://github.com/nightmare-space/shader_graph

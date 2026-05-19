@@ -1,44 +1,89 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
+import 'dart:ui';
 
+import 'package:aurora_recovery/demo_page.dart';
+import 'package:aurora_recovery/widgets/toast.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_pty/flutter_pty.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:xterm/xterm.dart';
+import 'package:signale/signale.dart';
 
-import 'animation_demo/animation_demo.dart';
 import 'drawer.dart';
-import 'heavy_demo/heavy_ui_demo.dart';
-import 'muitifinger/muitifinger.dart';
+import 'flash_rom/flash_rom_page.dart';
 import 'setting/setting.dart';
-import 'shader_demo/shader_demo.dart';
 import 'terminal/terminal_page.dart';
 import 'theme.dart';
-import 'theme_preview/theme_preview.dart';
 import 'video_player/video_player_page.dart';
+import 'widgets/view_metric.dart';
 import 'wlan/wlan_page.dart';
 
-class AuroraRecoveryApp extends StatelessWidget {
+bool showPerformanceOverlay = false;
+
+class AuroraRecoveryApp extends StatefulWidget {
   const AuroraRecoveryApp({super.key});
 
   @override
+  State<AuroraRecoveryApp> createState() => _AuroraRecoveryAppState();
+}
+
+class _AuroraRecoveryAppState extends State<AuroraRecoveryApp> with WidgetsBindingObserver {
+  // 监听窗口尺寸变化
+  static const double _targetTouchSlop = 8.0;
+
+  MediaQueryData _withRecoveryGestureSettings(MediaQueryData data) {
+    final double? currentTouchSlop = data.gestureSettings.touchSlop;
+    if (currentTouchSlop != null && currentTouchSlop <= _targetTouchSlop) {
+      return data;
+    }
+    return data.copyWith(
+      gestureSettings: const DeviceGestureSettings(touchSlop: _targetTouchSlop),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    FlutterView view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final size = view.physicalSize / view.devicePixelRatio;
+    Log.i("Window size changed: $size");
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'xterm.dart demo',
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      // showPerformanceOverlay: true,
-      theme: lightTheme.copyWith(
-        textTheme: lightTheme.textTheme.apply(
-          fontFamily: 'NotoSansCJK',
-        ),
-      ),
+      showPerformanceOverlay: showPerformanceOverlay,
+      defaultTransition: Transition.cupertino,
+      theme: auroraDark,
       builder: (context, child) {
+        final mediaQuery = _withRecoveryGestureSettings(MediaQuery.of(context));
         return ResponsiveBreakpoints.builder(
-          child: child!,
+          child: MediaQuery(
+            data: mediaQuery,
+            child: Builder(builder: (context) {
+              FlutterView view = PlatformDispatcher.instance.views.first;
+              Log.i("Current Device Pixel Ratio: ${view.devicePixelRatio}");
+              Log.i("Current Screen Size: ${view.physicalSize / view.devicePixelRatio}");
+              Log.i("Current touchSlop: ${MediaQuery.of(context).gestureSettings.touchSlop}");
+              return ViewMetric(
+                uiWidth: 414,
+                screenWidth: MediaQuery.of(context).size.width,
+                child: child!,
+              );
+            }),
+          ),
           landscapePlatforms: ResponsiveTargetPlatform.values,
           breakpoints: const [
             Breakpoint(start: 0, end: 500, name: MOBILE),
@@ -46,9 +91,9 @@ class AuroraRecoveryApp extends StatelessWidget {
             Breakpoint(start: 800, end: double.infinity, name: DESKTOP),
           ],
           breakpointsLandscape: [
-            const Breakpoint(start: 0, end: 450, name: MOBILE),
-            const Breakpoint(start: 451, end: 800, name: TABLET),
-            const Breakpoint(start: 801, end: double.infinity, name: DESKTOP),
+            Breakpoint(start: 0, end: 500, name: MOBILE),
+            Breakpoint(start: 500, end: 800, name: TABLET),
+            Breakpoint(start: 800, end: double.infinity, name: DESKTOP),
           ],
         );
       },
@@ -62,16 +107,120 @@ class AuroraRecoveryRoot extends StatefulWidget {
   const AuroraRecoveryRoot({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _AuroraRecoveryRootState createState() => _AuroraRecoveryRootState();
+  State createState() => _AuroraRecoveryRootState();
 }
 
-class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> {
-  int _selectedIndex = 0;
+class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> with SingleTickerProviderStateMixin {
+  int _selectedIndex = 1;
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final pages = [
+      DemoPage(),
+      TerminalPage(),
+      SettingPage(),
+      VideoPlayerPage(),
+      WlanPage(),
+      FlashRomPage(),
+    ];
+    final spacer = SizedBox(width: $(24));
+    final spacing = $(24);
+
+    final drawerItems = [
+      ArpDrawerItem(
+        value: 1,
+        groupValue: _selectedIndex,
+        child: Row(
+          spacing: spacing,
+          children: [
+            spacer,
+            SvgPicture.asset(
+              'assets/icons/terminal.svg',
+              colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+            ),
+            Text('终端'),
+          ],
+        ),
+      ),
+      ArpDrawerItem(
+        value: 5,
+        groupValue: _selectedIndex,
+        child: Row(
+          spacing: spacing,
+          children: [
+            spacer,
+            SvgPicture.asset(
+              'assets/icons/zap.svg',
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            Text('刷机'),
+          ],
+        ),
+      ),
+      ArpDrawerItem(
+        value: 4,
+        groupValue: _selectedIndex,
+        child: Row(
+          spacing: spacing,
+          children: [
+            spacer,
+            SvgPicture.asset(
+              'assets/icons/wifi-cog.svg',
+              colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+            ),
+            Text('WLAN'),
+          ],
+        ),
+      ),
+      ArpDrawerItem(
+        value: 2,
+        groupValue: _selectedIndex,
+        child: Row(
+          spacing: spacing,
+          children: [
+            spacer,
+            SvgPicture.asset(
+              'assets/icons/settings.svg',
+              colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+            ),
+            Text('设置'),
+          ],
+        ),
+      ),
+      ArpDrawerItem(
+        value: 3,
+        groupValue: _selectedIndex,
+        child: Row(
+          spacing: spacing,
+          children: [
+            spacer,
+            SvgPicture.asset(
+              'assets/icons/video.svg',
+              colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+            ),
+            Text('视频'),
+          ],
+        ),
+      ),
+      ArpDrawerItem(
+        value: 0,
+        groupValue: _selectedIndex,
+        child: Row(
+          spacing: spacing,
+          children: [
+            spacer,
+            SvgPicture.asset(
+              'assets/icons/layout-panel-left.svg',
+              colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+            ),
+            Text('Demo'),
+          ],
+        ),
+      ),
+    ];
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: colorScheme.surface,
       body: Builder(builder: (context) {
         final data = ResponsiveBreakpoints.of(context);
         if (data.isDesktop) {
@@ -79,238 +228,32 @@ class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> {
             children: [
               ArpDrawer<int>(
                 onItemSelected: (index) {
-                  setState(() {
-                    _selectedIndex = index;
-                  });
+                  _selectedIndex = index;
+                  setState(() {});
                 },
-                items: [
-                  ArpDrawerItem(
-                    value: 0,
-                    groupValue: _selectedIndex,
-                    child: Text('Theme'),
-                  ),
-                  ArpDrawerItem(
-                    value: 1,
-                    groupValue: _selectedIndex,
-                    child: Text('着色器'),
-                  ),
-                  ArpDrawerItem(
-                    value: 2,
-                    groupValue: _selectedIndex,
-                    child: Text('Heavy UI'),
-                  ),
-                  ArpDrawerItem(
-                    value: 3,
-                    groupValue: _selectedIndex,
-                    child: Text('终端'),
-                  ),
-                  ArpDrawerItem(
-                    value: 4,
-                    groupValue: _selectedIndex,
-                    child: Text('动画'),
-                  ),
-                  ArpDrawerItem(
-                    value: 5,
-                    groupValue: _selectedIndex,
-                    child: Text('设置'),
-                  ),
-                  ArpDrawerItem(
-                    value: 6,
-                    groupValue: _selectedIndex,
-                    child: Text('多点触控'),
-                  ),
-                  ArpDrawerItem(
-                    value: 7,
-                    groupValue: _selectedIndex,
-                    child: Text('计数器'),
-                  ),
-                  ArpDrawerItem(
-                    value: 8,
-                    groupValue: _selectedIndex,
-                    child: Text('视频'),
-                  ),
-                  ArpDrawerItem(
-                    value: 9,
-                    groupValue: _selectedIndex,
-                    child: Text('WLAN'),
-                  ),
-                ],
+                items: drawerItems,
               ),
               Expanded(
-                child: [
-                  ThemePreviewPage(),
-                  ShaderDemo(),
-                  HeavyUiHome(),
-                  TerminalPage(),
-                  AnimationDemo(),
-                  SettingPage(),
-                  MultiTouchPage(),
-                  CounterApp(),
-                  VideoPlayerPage(),
-                  WlanPage(),
-                ][_selectedIndex],
+                child: pages[_selectedIndex],
               ),
             ],
           );
         }
         return Scaffold(
-          drawer: ArpDrawer<int>(
-            onItemSelected: (index) {
-              setState(() {
+          drawer: SizedBox(
+            width: 300,
+            child: ArpDrawer<int>(
+              onItemSelected: (index) {
                 _selectedIndex = index;
-              });
-            },
-            items: [
-              ArpDrawerItem(
-                value: 0,
-                groupValue: _selectedIndex,
-                child: Text('Theme'),
-              ),
-              ArpDrawerItem(
-                value: 1,
-                groupValue: _selectedIndex,
-                child: Text('着色器'),
-              ),
-              ArpDrawerItem(
-                value: 2,
-                groupValue: _selectedIndex,
-                child: Text('Heavy UI'),
-              ),
-              ArpDrawerItem(
-                value: 3,
-                groupValue: _selectedIndex,
-                child: Text('终端'),
-              ),
-              ArpDrawerItem(
-                value: 4,
-                groupValue: _selectedIndex,
-                child: Text('动画'),
-              ),
-              ArpDrawerItem(
-                value: 5,
-                groupValue: _selectedIndex,
-                child: Text('设置'),
-              ),
-              ArpDrawerItem(
-                value: 6,
-                groupValue: _selectedIndex,
-                child: Text('多点触控'),
-              ),
-              ArpDrawerItem(
-                value: 7,
-                groupValue: _selectedIndex,
-                child: Text('计数器'),
-              ),
-              ArpDrawerItem(
-                value: 8,
-                groupValue: _selectedIndex,
-                child: Text('视频'),
-              ),
-            ],
+                setState(() {});
+                Get.back();
+              },
+              items: drawerItems,
+            ),
           ),
-          body: [
-            ThemePreviewPage(),
-            ShaderDemo(),
-            HeavyUiHome(),
-            TerminalPage(),
-            AnimationDemo(),
-            SettingPage(),
-            MultiTouchPage(),
-            CounterApp(),
-            VideoPlayerPage(),
-          ][_selectedIndex],
+          body: pages[_selectedIndex],
         );
       }),
-    );
-  }
-}
-
-String get shell {
-  if (Platform.isMacOS || Platform.isLinux) {
-    return Platform.environment['SHELL'] ?? 'bash';
-  }
-
-  if (Platform.isWindows) {
-    return 'cmd.exe';
-  }
-
-  return 'sh';
-}
-
-class CounterApp extends StatelessWidget {
-  const CounterApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: CounterPage(),
-    );
-  }
-}
-
-class CounterPage extends StatefulWidget {
-  const CounterPage({super.key});
-
-  @override
-  State<CounterPage> createState() => _CounterPageState();
-}
-
-class _CounterPageState extends State<CounterPage> {
-  int _count = 0;
-
-  void _increment() {
-    setState(() {
-      _count++;
-    });
-  }
-
-  void _decrement() {
-    setState(() {
-      _count--;
-    });
-  }
-
-  void _reset() {
-    setState(() {
-      _count = 0;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Counter Demo"),
-      ),
-      body: Center(
-        child: Text(
-          '$_count',
-          style: const TextStyle(
-            fontSize: 60,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FloatingActionButton(
-            onPressed: _increment,
-            child: const Icon(Icons.add),
-          ),
-          const SizedBox(height: 12),
-          FloatingActionButton(
-            onPressed: _decrement,
-            child: const Icon(Icons.remove),
-          ),
-          const SizedBox(height: 12),
-          FloatingActionButton(
-            onPressed: _reset,
-            child: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
     );
   }
 }

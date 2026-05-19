@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme.dart';
+import '../../theme.dart';
 import 'package:flutter/material.dart';
 
 class ThemePreviewPage extends StatefulWidget {
@@ -15,8 +15,8 @@ class _ThemePreviewPageState extends State<ThemePreviewPage> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: ThemePreview(theme: darkTheme)),
-        Expanded(child: ThemePreview(theme: lightTheme)),
+        Expanded(child: ThemePreview(theme: pinkLight)),
+        Expanded(child: ThemePreview(theme: pinkDark)),
       ],
     );
   }
@@ -34,7 +34,6 @@ class ThemePreview extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final cs = Theme.of(context).colorScheme;
-
           return Material(
             color: cs.surface,
             child: ListView(
@@ -65,7 +64,10 @@ class ThemePreview extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
