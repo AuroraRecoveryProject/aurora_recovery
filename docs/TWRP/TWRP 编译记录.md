@@ -57,114 +57,7 @@ ccache -s
 
 ## 3. 问题记录与解决方案 (Troubleshooting Log)
 
-### Q1: macOS 文件系统大小写敏感错误
-
-**报错:**
-
-```text
-You are building on a case-insensitive filesystem.
-Please move your source tree to a case-sensitive filesystem.
-```
-
-**原因:**
-macOS 默认的 APFS 文件系统不区分大小写，而 Android 源代码（尤其是 Linux 内核部分和某些 Java 包）由于文件名仅大小写不同，必须在区分大小写的文件系统中操作。
-
-并且修改代码是在当前的 mac，所以当前 mac 需要 sync 一份安卓源码，修改完，rsync 到编译的服务器
-
-**解决方案1:**
-
-创建并挂载一个区分大小写的稀疏镜像：
-
-Case-sensitive APFS 这个玩意创建的分区，里面文件删了，空间不释放
-
-- APFS 是 copy-on-write
-- sparseimage 不会自动 shrink
-- 可通过 `hdiutil compact android.dmg.sparseimage` 手动回收空间
-
-```bash
-# 创建 200GB 区分大小写的 APFS 镜像
-hdiutil create \
-    -type SPARSE \
-    -fs 'Case-sensitive APFS' \
-    -size 200g \
-    -volname android_source android.dmg
-# 挂载
-hdiutil attach android.dmg.sparseimage
-# 将源码同步进去
-rsync -av --exclude='*.dmg*' TWRP-16/ /Volumes/android_source/
-
-hdiutil resize -size 300g /Users/Laurie/Desktop/nightmare-space/Android_Recovery/TWRP_Compile/android.dmg.sparseimage
-
-# 验证挂载
-hdiutil info | grep "android.dmg.sparseimage"
-```
-
-**解决方案2:**
-
-使用 HFS+:
-
-```bash
-hdiutil create \
-  -type SPARSE \
-  -fs 'Case-sensitive Journaled HFS+' \
-  -size 200g \
-  -volname android_source android.dmg
-```
-
-**最终方案3:**
-
-```bash
-# diskutil list                                     
-/dev/disk0 (internal, physical):
-   #:                       TYPE NAME                    SIZE       IDENTIFIER
-   0:      GUID_partition_scheme                        *1.0 TB     disk0
-   1:             Apple_APFS_ISC Container disk1         524.3 MB   disk0s1
-   2:                 Apple_APFS Container disk3         994.7 GB   disk0s2
-   3:        Apple_APFS_Recovery Container disk2         5.4 GB     disk0s3
-
-/dev/disk3 (synthesized):
-   #:                       TYPE NAME                    SIZE       IDENTIFIER
-   0:      APFS Container Scheme -                      +994.7 GB   disk3
-                                 Physical Store disk0s2
-   1:                APFS Volume Macintosh HD - Data     651.2 GB   disk3s1
-   2:                APFS Volume Macintosh HD            16.5 GB    disk3s3
-   3:              APFS Snapshot com.apple.os.update-... 16.5 GB    disk3s3s1
-   4:                APFS Volume Preboot                 16.9 GB    disk3s4
-   5:                APFS Volume Recovery                2.6 GB     disk3s5
-   6:                APFS Volume VM                      41.9 GB    disk3s6
-   7:                APFS Volume Case-sensitive APFS     99.0 GB    disk3s7
-   8:                APFS Volume android_source          856.1 KB   disk3s8
-
-/dev/disk4 (disk image):
-   #:                       TYPE NAME                    SIZE       IDENTIFIER
-   0:      GUID_partition_scheme                        +2.4 GB     disk4
-   1:                 Apple_APFS Container disk5         2.4 GB     disk4s1
-
-/dev/disk5 (synthesized):
-   #:                       TYPE NAME                    SIZE       IDENTIFIER
-   0:      APFS Container Scheme -                      +2.4 GB     disk5
-                                 Physical Store disk4s1
-   1:                APFS Volume MetalToolchainCryptex   2.3 GB     disk5s1 
-```
-
-由
-
-```bash
-/dev/disk3 (synthesized):
-0: APFS Container Scheme - +994.7 GB disk3
-```
-
-推断出 disk3
-
-创建一个卷:
-
-```bash
-diskutil apfs addVolume disk3 APFSX android_source
-```
-
-或者直接去磁盘工具手动创建卷，选择 APFS(区分大小写) 就行
-
-### Q2: Soong 编译工具崩溃 (Panic in prebuilt_etc.go)
+### Soong 编译工具崩溃 (Panic in prebuilt_etc.go)
 
 > 这个后来好像没了，本地编译的源码，也没有这块的修改，不过保留记录
 
@@ -180,7 +73,7 @@ Android 16 的构建工具 Soong 在处理某些特殊的预编译模块（如 `
 **解决方案:**
 修改 `build/soong/etc/prebuilt_etc.go` 文件，在访问数组前增加非空检查 (Patch Applied)。
 
-### Q3: Soong bootstrap 被杀死 (Killed) / 疑似 OOM
+### Soong bootstrap 被杀死 (Killed) / OOM
 
 **报错 (典型表现):**
 
@@ -232,7 +125,7 @@ free -h
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
 
-### Q4: Recovery 卡第一屏但 ADB 可连接（`/system/bin/recovery` 反复重启）
+### Recovery 卡第一屏但 ADB 可连接（`/system/bin/recovery` 反复重启）
 
 **现象:**
 
@@ -285,7 +178,7 @@ endif
 
 所以没必要再加 `TARGET_RECOVERY_DEVICE_MODULES += libresetprop`
 
-### Q5: Init 脚本验证失败 (host_init_verifier)
+### Init 脚本验证失败 (host_init_verifier)
 
 在 Android 16（A16）构建 TWRP recovery 时，构建系统会对 recovery 的 init 脚本（`bootable/recovery/etc/*.rc`）做静态校验。其中一个关键步骤是运行 `host_init_verifier`（主机侧 init 脚本验证器）。
 
@@ -452,6 +345,116 @@ bootable/recovery/etc/init.recovery.service22.rc:4: recovery: service recovery /
 
 实际上面这类不补也能正常编译，保证编译的情况下尽量少改
 
+
+### MacOS 相关
+
+#### macOS 文件系统大小写敏感错误
+
+**报错:**
+
+```text
+You are building on a case-insensitive filesystem.
+Please move your source tree to a case-sensitive filesystem.
+```
+
+**原因:**
+macOS 默认的 APFS 文件系统不区分大小写，而 Android 源代码（尤其是 Linux 内核部分和某些 Java 包）由于文件名仅大小写不同，必须在区分大小写的文件系统中操作。
+
+并且修改代码是在当前的 mac，所以当前 mac 需要 sync 一份安卓源码，修改完，rsync 到编译的服务器
+
+**解决方案1:**
+
+创建并挂载一个区分大小写的稀疏镜像：
+
+Case-sensitive APFS 这个玩意创建的分区，里面文件删了，空间不释放
+
+- APFS 是 copy-on-write
+- sparseimage 不会自动 shrink
+- 可通过 `hdiutil compact android.dmg.sparseimage` 手动回收空间
+
+```bash
+# 创建 200GB 区分大小写的 APFS 镜像
+hdiutil create \
+    -type SPARSE \
+    -fs 'Case-sensitive APFS' \
+    -size 200g \
+    -volname android_source android.dmg
+# 挂载
+hdiutil attach android.dmg.sparseimage
+# 将源码同步进去
+rsync -av --exclude='*.dmg*' TWRP-16/ /Volumes/android_source/
+
+hdiutil resize -size 300g /Users/Laurie/Desktop/nightmare-space/Android_Recovery/TWRP_Compile/android.dmg.sparseimage
+
+# 验证挂载
+hdiutil info | grep "android.dmg.sparseimage"
+```
+
+**解决方案2:**
+
+使用 HFS+:
+
+```bash
+hdiutil create \
+  -type SPARSE \
+  -fs 'Case-sensitive Journaled HFS+' \
+  -size 200g \
+  -volname android_source android.dmg
+```
+
+**最终方案3:**
+
+```bash
+# diskutil list                                     
+/dev/disk0 (internal, physical):
+   #:                       TYPE NAME                    SIZE       IDENTIFIER
+   0:      GUID_partition_scheme                        *1.0 TB     disk0
+   1:             Apple_APFS_ISC Container disk1         524.3 MB   disk0s1
+   2:                 Apple_APFS Container disk3         994.7 GB   disk0s2
+   3:        Apple_APFS_Recovery Container disk2         5.4 GB     disk0s3
+
+/dev/disk3 (synthesized):
+   #:                       TYPE NAME                    SIZE       IDENTIFIER
+   0:      APFS Container Scheme -                      +994.7 GB   disk3
+                                 Physical Store disk0s2
+   1:                APFS Volume Macintosh HD - Data     651.2 GB   disk3s1
+   2:                APFS Volume Macintosh HD            16.5 GB    disk3s3
+   3:              APFS Snapshot com.apple.os.update-... 16.5 GB    disk3s3s1
+   4:                APFS Volume Preboot                 16.9 GB    disk3s4
+   5:                APFS Volume Recovery                2.6 GB     disk3s5
+   6:                APFS Volume VM                      41.9 GB    disk3s6
+   7:                APFS Volume Case-sensitive APFS     99.0 GB    disk3s7
+   8:                APFS Volume android_source          856.1 KB   disk3s8
+
+/dev/disk4 (disk image):
+   #:                       TYPE NAME                    SIZE       IDENTIFIER
+   0:      GUID_partition_scheme                        +2.4 GB     disk4
+   1:                 Apple_APFS Container disk5         2.4 GB     disk4s1
+
+/dev/disk5 (synthesized):
+   #:                       TYPE NAME                    SIZE       IDENTIFIER
+   0:      APFS Container Scheme -                      +2.4 GB     disk5
+                                 Physical Store disk4s1
+   1:                APFS Volume MetalToolchainCryptex   2.3 GB     disk5s1 
+```
+
+由
+
+```bash
+/dev/disk3 (synthesized):
+0: APFS Container Scheme - +994.7 GB disk3
+```
+
+推断出 disk3
+
+创建一个卷:
+
+```bash
+diskutil apfs addVolume disk3 APFSX android_source
+```
+
+或者直接去磁盘工具手动创建卷，选择 APFS(区分大小写) 就行
+
 ## 使用 Docker 进行编译
 
 起初给我 Mac 用的，但是转义损耗太大，编译实在太久
@@ -524,3 +527,5 @@ else
       twrp-build-env
 fi
 ```
+
+

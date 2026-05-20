@@ -171,3 +171,58 @@ void twPersistUnMount(void) {
 产物 `super_empty.img` 不含任何分区数据，仅保存分区布局描述，
 用于 `fastboot flash super super_empty.img` 擦除 super 分区回出厂状态。
 fastbootd 单独刷 system 等分区时完全不涉及这个文件，因此用默认数值也不会有任何问题。
+
+## 二进制覆盖情况
+
+设备树的 recovery/root 最后覆盖，源文件被替换
+
+关键代码在 build/make/core/Makefile：
+
+### 1.变量定义（2619行）
+
+recovery_root_private := $(strip $(wildcard $(TARGET_DEVICE_DIR)/recovery/root))
+
+### 2.构建时间线（2782-2810行）
+
+```bash
+$(INTERNAL_RECOVERY_RAMDISK_FILES_TIMESTAMP): $(MKBOOTFS) \
+    $(INTERNAL_RECOVERYIMAGE_FILES) \     # ← 源码模块在此之前已安装到 TARGET_RECOVERY_ROOT_OUT
+    $(recovery_root_deps) \               # ← recovery/root 文件作为依赖
+    ...
+
+    # Step 1: 复制基础 ramdisk（系统侧的 init* 等）到 recovery out
+    rsync -a --exclude=sdcard $(IGNORE_RECOVERY_SEPOLICY) $(IGNORE_CACHE_LINK) $(TARGET_ROOT_OUT) $(TARGET_RECOVERY_OUT)
+
+    # Step 2: 复制 TWRP 资源文件
+    cp -rf $(recovery_resources_common)/* $(TARGET_RECOVERY_ROOT_OUT)/res
+
+    # Step 3: 复制设备树 recovery/root —— 最后一步，覆盖前面所有！
+    $(foreach item,$(recovery_root_private), \
+      cp -rf $(item) $(TARGET_RECOVERY_OUT)/;)
+```
+
+Step 3 是最后执行的 cp -rf，设备树 recovery/root 目录的所有内容直接覆盖 $(TARGET_RECOVERY_OUT)
+中已有的同名文件——无论是源码编译的还是系统预置的。
+
+时序图
+
+```bash
+源码模块编译 → install 到 TARGET_RECOVERY_ROOT_OUT
+        ↓
+系统 ramdisk rsync → TARGET_RECOVERY_OUT
+        ↓
+TWRP res 文件复制
+        ↓
+设备树 recovery/root cp -rf → TARGET_RECOVERY_OUT  ← 最后一步，覆盖所有同名文件
+        ↓
+mkbootfs 打包 → recovery_ramdisk.img
+```
+
+直接验证，在设备树中添加下面两个文件，直接写入 `test binary override`
+
+```bash
+recovery/root/system/bin/awk
+recovery/root/system/bin/bash
+```
+
+最终构建的 recovery.img 再用 magiskboot 解包，得到的就是 `test binary override`，说明设备树二进制覆盖 TWRP 构建二进制
