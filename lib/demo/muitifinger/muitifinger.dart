@@ -44,7 +44,6 @@ class _MultiTouchPageState extends State<MultiTouchPage> {
         behavior: HitTestBehavior.opaque,
         child: Stack(
           children: [
-            // 手指圆点
             ..._pointers.entries.map((entry) {
               return Positioned(
                 left: entry.value.dx - 30,

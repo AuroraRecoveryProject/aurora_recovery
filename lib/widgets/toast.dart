@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-
-import 'view_metric.dart';
+// ignore: depend_on_referenced_packages
+import 'package:global_repository/global_repository.dart';
 
 // Copy from https://github.com/nightmare-space/global_repository
 

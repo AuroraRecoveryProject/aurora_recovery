@@ -9,6 +9,7 @@ Future<Map<String, double>> calculateGPUUsage() async {
     }
 
     // 读取第一次 gpubusy
+    // Read the first gpubusy
     final gpubusy1 = await gpubusyFile.readAsString();
     final parts1 = gpubusy1.trim().split(RegExp('\\s+'));
     if (parts1.length < 2) return {'calc_usage': 0.0, 'kernel_usage': 0.0};
@@ -19,6 +20,7 @@ Future<Map<String, double>> calculateGPUUsage() async {
     await Future.delayed(Duration(seconds: 1));
 
     // 读取第二次 gpubusy
+    // Read the second gpubusy
     final gpubusy2 = await gpubusyFile.readAsString();
     final parts2 = gpubusy2.trim().split(RegExp('\\s+'));
     if (parts2.length < 2) return {'calc_usage': 0.0, 'kernel_usage': 0.0};
@@ -35,6 +37,7 @@ Future<Map<String, double>> calculateGPUUsage() async {
     }
 
     // 读取内核计算好的 gpu_load
+    // Read the gpu_load calculated by the kernel
     double kernelUsage = 0.0;
     final gpuLoadFile = File('/sys/class/kgsl/kgsl-3d0/devfreq/gpu_load');
     if (await gpuLoadFile.exists()) {
@@ -50,6 +53,7 @@ Future<Map<String, double>> calculateGPUUsage() async {
 
 Future<double> calculateCPUUsage() async {
   // 读取第一次 CPU 时间
+  // Read the first CPU times
   final cpuTimes1 = await getCPUTimes();
   if (cpuTimes1.length < 8) {
     return -1;
@@ -61,6 +65,7 @@ Future<double> calculateCPUUsage() async {
   }
 
   // 显式提取第一次采样的变量
+  // Explicitly extract the variables from the first sample
   final user1 = cpuTimes1[0];
   final nice1 = cpuTimes1[1];
   final system1 = cpuTimes1[2];
@@ -71,6 +76,7 @@ Future<double> calculateCPUUsage() async {
   final steal1 = cpuTimes1[7];
 
   // 显式提取第二次采样的变量
+  // Explicitly extract the variables from the second sample
   final user2 = cpuTimes2[0];
   final nice2 = cpuTimes2[1];
   final system2 = cpuTimes2[2];
@@ -81,6 +87,7 @@ Future<double> calculateCPUUsage() async {
   final steal2 = cpuTimes2[7];
 
   // 计算总时间和空闲时间
+  // Calculate total time and idle time
   final totalTime1 = user1 + nice1 + system1 + idle1 + iowait1 + irq1 + softirq1 + steal1;
   final totalTime2 = user2 + nice2 + system2 + idle2 + iowait2 + irq2 + softirq2 + steal2;
 
@@ -95,6 +102,7 @@ Future<double> calculateCPUUsage() async {
   }
 
   // 计算 CPU 使用率
+  // Calculate CPU usage
   final cpuUsage = 1.0 - (idleDelta / totalDelta);
   return (cpuUsage * 100).clamp(0.0, 100.0);
 }

@@ -19,7 +19,7 @@ class WifiResult {
   final List<String> flags;
   final String ssid;
 
-  String get displayName => ssid.isEmpty ? '<隐藏网络>' : ssid;
+  String get displayName => ssid.isEmpty ? '<Hide Network>' : ssid;
 
   String get flagsText => flags.isEmpty ? 'OPEN' : flags.join(' ');
 
@@ -79,43 +79,43 @@ class WifiResult {
     return matches.map((Match match) => match.group(1)!).toList(growable: false);
   }
 
-  static String _decodeSsid(String rawSsid) {
-    // 中文 SSID 可能会被 wpa_cli 输出为类似于 \xE5\x93\x88\xE5\x93\x88 的格式，这里需要进行解码
-    if (rawSsid.isEmpty || !rawSsid.contains(r'\x')) {
-      return rawSsid;
+  // 中文 SSID 可能会被 wpa_cli 输出为类似于 \xE5\x93\x88\xE5\x93\x88 的格式，这里需要进行解码
+  // Chinese SSIDs may be output by wpa_cli in a format like \xE5\x93\x88\xE5\x93\x88, which needs to be decoded here
+  static String _decodeSsid(String ssid) {
+    if (!ssid.contains(r'\x')) {
+      return ssid;
     }
 
     final bytes = <int>[];
-    int index = 0;
-    while (index < rawSsid.length) {
-      final isHexEscape = index + 3 < rawSsid.length && rawSsid[index] == r'\' && rawSsid[index + 1] == 'x';
 
-      if (isHexEscape) {
-        final hex = rawSsid.substring(index + 2, index + 4);
-        final value = int.tryParse(hex, radix: 16);
-        if (value != null) {
-          bytes.add(value);
-          index += 4;
-          continue;
-        }
+    ssid.replaceAllMapped(RegExp(r'\\x([0-9A-Fa-f]{2})|(.)'), (m) {
+      if (m[1] != null) {
+        bytes.add(int.parse(m[1]!, radix: 16));
+      } else {
+        bytes.addAll(utf8.encode(m[2]!));
       }
-
-      bytes.addAll(utf8.encode(rawSsid[index]));
-      index += 1;
-    }
+      return '';
+    });
 
     return utf8.decode(bytes, allowMalformed: true);
+  }
+
+  @override
+  String toString() {
+    return 'WifiResult(bssid: $bssid, frequency: $frequency, signalLevel: $signalLevel, strength: $strength, flags: ${flags.join(' ')}, ssid: $ssid)';
   }
 }
 
 class WifiStatus {
   const WifiStatus({
     required this.state,
+    required this.bssid,
     required this.ssid,
     required this.rawStatus,
   });
 
   final String state;
+  final String bssid;
   final String ssid;
   final String rawStatus;
 
@@ -135,11 +135,12 @@ class WifiStatus {
 
     return WifiStatus(
       state: values['wpa_state'] ?? '',
-      ssid: values['ssid'] ?? '',
+      bssid: values['bssid'] ?? '',
+      ssid: WifiResult._decodeSsid(values['ssid'] ?? ''),
       rawStatus: raw.trim(),
     );
   }
 
   @override
-  String toString() => 'WifiStatus(state: $state, ssid: $ssid rawStatus: $rawStatus)';
+  String toString() => 'WifiStatus(state: $state, bssid: $bssid, ssid: $ssid rawStatus: $rawStatus)';
 }

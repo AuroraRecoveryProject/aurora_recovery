@@ -1,18 +1,23 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ViewMetric;
+import 'package:global_repository/global_repository.dart';
 
 class AnimationDemo extends StatelessWidget {
   const AnimationDemo({super.key});
   @override
   Widget build(BuildContext context) {
+    final $ = context.$;
     return Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          spacing: 24,
+          spacing: $(24),
           children: [
-            Text("Flutter Animation Demo", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(width: 60, height: 60, child: CircularProgressIndicator(strokeWidth: 6)),
-            SizedBox(width: 300, child: LinearProgressIndicator(minHeight: 10)),
+            Text("Alyx is the best VR Game", style: TextStyle(fontSize: $(24), fontWeight: FontWeight.bold)),
+            LoadingProgress(
+              minRadius: $(10),
+              strokeWidth: $(3),
+              increaseRadius: $(4),
+            ),
           ],
         ),
       ),

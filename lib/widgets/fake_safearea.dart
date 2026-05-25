@@ -1,4 +1,5 @@
-import 'package:aurora_recovery/widgets/view_metric.dart';
+// ignore: depend_on_referenced_packages
+import 'package:global_repository/global_repository.dart';
 import 'package:flutter/material.dart';
 
 class FakeSafearea extends StatefulWidget {

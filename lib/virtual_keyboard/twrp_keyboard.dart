@@ -269,13 +269,16 @@ class TwrpKeyboardState extends State<TwrpKeyboard> {
   bool isShiftKey(TwKey key) => key.isLayout && key.label == 'Shift';
 
   // Shift 锁定状态：全键盘模式，当前是 Shift 页，且 Caps Lock 已经打开
+  // Shift Lock state: Full keyboard mode, currently on Shift page, and Caps Lock is on
   bool isShiftLatched() => widget.mode == TwKeyboardMode.full && layout == 2 && capsLockOn;
 
   // Shift 活跃状态：全键盘模式，且当前是 Shift 页（不管 Caps Lock 状态）
+  // Shift active state: Full keyboard mode, and currently on Shift page (regardless of Caps Lock state)
   bool isShiftActive() => widget.mode == TwKeyboardMode.full && layout == 2;
 
   bool isCtrlKeyActive(TwKey key) {
-    return (key.logicalKey == LogicalKeyboardKey.controlLeft || key.logicalKey == LogicalKeyboardKey.controlRight) && ctrlActive;
+    return (key.logicalKey == LogicalKeyboardKey.controlLeft || key.logicalKey == LogicalKeyboardKey.controlRight) &&
+        ctrlActive;
   }
 
   @override

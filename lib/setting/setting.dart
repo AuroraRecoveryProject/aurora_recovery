@@ -1,12 +1,14 @@
 import 'dart:io';
-
-import 'package:aurora_recovery/root.dart';
-import 'package:aurora_recovery/services/global.dart';
-import 'package:aurora_recovery/widgets/view_metric.dart';
-import 'package:aurora_recovery/widgets/fake_safearea.dart';
 import 'package:flutter/material.dart';
+
 import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+// ignore: depend_on_referenced_packages
+import 'package:global_repository/global_repository.dart';
+import 'package:aurora_recovery/common/l10n.dart';
+import 'package:aurora_recovery/main.dart';
+import 'package:aurora_recovery/services/global.dart';
+import 'package:aurora_recovery/widgets/fake_safearea.dart';
 
 class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
@@ -25,7 +27,7 @@ class _SettingPageState extends State<SettingPage> {
         top: ResponsiveBreakpoints.of(context).isMobile,
         child: Scaffold(
           appBar: AppBar(
-            title: Text("设置"),
+            title: Text(l10n.setting),
             leadingWidth: $(48 + 16),
             forceMaterialTransparency: true,
             leading: IconButton(
@@ -45,14 +47,14 @@ class _SettingPageState extends State<SettingPage> {
               spacing: $(8),
               children: [
                 Text(
-                  "电池: ${Global.batteryValue}",
+                  "${l10n.battery}: ${Global.batteryValue}",
                   style: TextStyle(
                     fontSize: $(16),
                   ),
                 ),
                 SizedBox(height: $(16)),
                 Text(
-                  "亮度: ${Global.brightnessPct}%",
+                  "${l10n.brightness}: ${Global.brightnessPct}%",
                   style: TextStyle(
                     fontSize: $(16),
                   ),
@@ -68,10 +70,12 @@ class _SettingPageState extends State<SettingPage> {
                 Row(
                   spacing: $(12),
                   children: [
-                    Text(
-                      "显示Flutter性能图层",
-                      style: TextStyle(
-                        fontSize: $(16),
+                    Expanded(
+                      child: Text(
+                        l10n.show_performance_overlay,
+                        style: TextStyle(
+                          fontSize: $(16),
+                        ),
                       ),
                     ),
                     Switch(
@@ -88,21 +92,63 @@ class _SettingPageState extends State<SettingPage> {
                   spacing: $(12),
                   children: [
                     Text(
-                      "重启",
+                      '语言',
                       style: TextStyle(
                         fontSize: $(16),
                       ),
                     ),
                   ],
                 ),
-                TextButton(
-                  onPressed: () {
-                    Process.run('reboot', ['recovery']);
-                  },
-                  child: Text(
-                    'Recovery',
-                  ),
-                )
+                Row(
+                  children: [
+                    Radio<String>(
+                      value: 'zh',
+                      groupValue: Get.locale?.languageCode,
+                      onChanged: (value) {
+                        Get.updateLocale(Locale(value!));
+                      },
+                    ),
+                    Text('中文'),
+                    Radio<String>(
+                      value: 'en',
+                      groupValue: Get.locale?.languageCode,
+                      onChanged: (value) {
+                        Get.updateLocale(Locale(value!));
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  spacing: $(12),
+                  children: [
+                    Text(
+                      l10n.reboot,
+                      style: TextStyle(
+                        fontSize: $(16),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Process.run('reboot', []);
+                      },
+                      child: Text(
+                        'System',
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Process.run('reboot', ['recovery']);
+                      },
+                      child: Text(
+                        'Recovery',
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

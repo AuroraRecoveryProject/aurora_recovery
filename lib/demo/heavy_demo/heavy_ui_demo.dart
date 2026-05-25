@@ -1,7 +1,3 @@
-// =============================================================
-// Heavy UI Demo — 故意制造 UI 线程负载，让 Performance Overlay 可视
-// =============================================================
-
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -14,12 +10,10 @@ class HeavyUiHome extends StatefulWidget {
 
 class _HeavyUiHomeState extends State<HeavyUiHome> with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
-  final _rng = Random(42);
 
   @override
   void initState() {
     super.initState();
-    // 每帧都触发 rebuild
     _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
     _ctrl.addListener(() => setState(() {}));
   }
@@ -31,6 +25,7 @@ class _HeavyUiHomeState extends State<HeavyUiHome> with SingleTickerProviderStat
   }
 
   // 每次 build 创建 200 个带阴影+变换+透明的卡片
+  // Create 200 cards with shadows, transformations, and transparency on each build
   @override
   Widget build(BuildContext context) {
     final t = _ctrl.value;
@@ -38,7 +33,8 @@ class _HeavyUiHomeState extends State<HeavyUiHome> with SingleTickerProviderStat
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 1) 200 个随机定位、旋转、半透明的彩色卡片
+          // 200 个随机定位、旋转、半透明的彩色卡片
+          // 200 randomly positioned, rotated, and semi-transparent colorful cards
           for (int i = 0; i < 200; i++)
             Positioned(
               left: (sin(t * 6.28 + i * 0.3) * 0.5 + 0.5) * (MediaQuery.of(context).size.width - 80),
@@ -70,7 +66,8 @@ class _HeavyUiHomeState extends State<HeavyUiHome> with SingleTickerProviderStat
                 ),
               ),
             ),
-          // 2) 叠加一个 CustomPainter 在上面
+          // 叠加一个 CustomPainter 在上面
+          // Overlay a CustomPainter on top
           Positioned.fill(child: CustomPaint(painter: _HeavyPainter(t))),
         ],
       ),
@@ -79,6 +76,7 @@ class _HeavyUiHomeState extends State<HeavyUiHome> with SingleTickerProviderStat
 }
 
 /// CustomPainter：每帧绘制 500 个圆 + 200 条线
+/// CustomPainter: Draw 500 circles and 200 lines each frame
 class _HeavyPainter extends CustomPainter {
   final double t;
   _HeavyPainter(this.t);
@@ -87,6 +85,7 @@ class _HeavyPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
     // 500 个半透明圆
+    // 500 semi-transparent circles
     for (int i = 0; i < 500; i++) {
       final x = (sin(t * 4 + i * 0.2) * 0.5 + 0.5) * size.width;
       final y = (cos(t * 3 + i * 0.15) * 0.5 + 0.5) * size.height;
@@ -95,6 +94,7 @@ class _HeavyPainter extends CustomPainter {
       canvas.drawCircle(Offset(x, y), r, paint);
     }
     // 200 条线
+    // 200 lines
     paint
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;

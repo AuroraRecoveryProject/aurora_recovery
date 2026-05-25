@@ -58,8 +58,8 @@ const Color seedColor = Color(0xFF06B6D4);
 // ============================================================
 final ThemeData auroraDark = ThemeData(
   useMaterial3: true,
-  fontFamily: 'NotoSansCJK',
   brightness: Brightness.dark,
+  fontFamily: 'Robot',
   colorScheme: const ColorScheme.dark(
     // --- Brand: Aurora Cyan ---
     primary: Color(0xFF06B6D4),

@@ -1,10 +1,11 @@
 import 'package:aurora_recovery/widgets/fake_safearea.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+// ignore: depend_on_referenced_packages
+import 'package:global_repository/global_repository.dart';
 
 import 'services/global.dart';
-import 'widgets/view_metric.dart';
 
 class ArpDrawer<T> extends StatefulWidget {
   const ArpDrawer({
@@ -28,7 +29,7 @@ class _ArpDrawerState<T> extends State<ArpDrawer<T>> {
       child: FakeSafearea(
         top: ResponsiveBreakpoints.of(context).isMobile,
         child: SizedBox(
-          width: 200,
+          width: $(200),
           child: Center(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: $(12)),
@@ -53,7 +54,7 @@ class _ArpDrawerState<T> extends State<ArpDrawer<T>> {
                             onTap: () {
                               widget.onItemSelected?.call(item.value);
                             },
-                            child: Center(child: item),
+                            child: item,
                           ),
                         );
                       },

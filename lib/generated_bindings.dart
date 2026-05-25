@@ -194,6 +194,138 @@ class AuroraBindings {
   late final _tw_display_percent_to_brightness_value =
       _tw_display_percent_to_brightness_valuePtr
           .asFunction<int Function(int, ffi.Pointer<ffi.Int32>)>();
+
+  int tw_install_init() {
+    return _tw_install_init();
+  }
+
+  late final _tw_install_initPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('tw_install_init');
+  late final _tw_install_init =
+      _tw_install_initPtr.asFunction<int Function()>();
+
+  int tw_install_set_paths(
+    ffi.Pointer<ffi.Char> log_path,
+    ffi.Pointer<ffi.Char> install_file_path,
+    ffi.Pointer<ffi.Char> update_binary_path,
+  ) {
+    return _tw_install_set_paths(
+      log_path,
+      install_file_path,
+      update_binary_path,
+    );
+  }
+
+  late final _tw_install_set_pathsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>)>>('tw_install_set_paths');
+  late final _tw_install_set_paths = _tw_install_set_pathsPtr.asFunction<
+      int Function(ffi.Pointer<ffi.Char>, ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>)>();
+
+  int tw_install_start_zip(
+    ffi.Pointer<ffi.Char> path,
+    int check_digest,
+  ) {
+    return _tw_install_start_zip(
+      path,
+      check_digest,
+    );
+  }
+
+  late final _tw_install_start_zipPtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<ffi.Char>, ffi.Int)>>(
+      'tw_install_start_zip');
+  late final _tw_install_start_zip = _tw_install_start_zipPtr
+      .asFunction<int Function(ffi.Pointer<ffi.Char>, int)>();
+
+  int tw_install_get_state() {
+    return _tw_install_get_state();
+  }
+
+  late final _tw_install_get_statePtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>('tw_install_get_state');
+  late final _tw_install_get_state =
+      _tw_install_get_statePtr.asFunction<int Function()>();
+
+  int tw_install_get_progress() {
+    return _tw_install_get_progress();
+  }
+
+  late final _tw_install_get_progressPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>(
+          'tw_install_get_progress');
+  late final _tw_install_get_progress =
+      _tw_install_get_progressPtr.asFunction<int Function()>();
+
+  int tw_install_get_wipe_cache() {
+    return _tw_install_get_wipe_cache();
+  }
+
+  late final _tw_install_get_wipe_cachePtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>(
+          'tw_install_get_wipe_cache');
+  late final _tw_install_get_wipe_cache =
+      _tw_install_get_wipe_cachePtr.asFunction<int Function()>();
+
+  int tw_install_read_log(
+    int offset,
+    ffi.Pointer<ffi.Char> out_value,
+    int out_len,
+    ffi.Pointer<ffi.Uint64> out_next_offset,
+  ) {
+    return _tw_install_read_log(
+      offset,
+      out_value,
+      out_len,
+      out_next_offset,
+    );
+  }
+
+  late final _tw_install_read_logPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(ffi.Uint64, ffi.Pointer<ffi.Char>, ffi.Size,
+              ffi.Pointer<ffi.Uint64>)>>('tw_install_read_log');
+  late final _tw_install_read_log = _tw_install_read_logPtr.asFunction<
+      int Function(int, ffi.Pointer<ffi.Char>, int, ffi.Pointer<ffi.Uint64>)>();
+
+  int tw_install_get_last_error(
+    ffi.Pointer<ffi.Char> out_value,
+    int out_len,
+  ) {
+    return _tw_install_get_last_error(
+      out_value,
+      out_len,
+    );
+  }
+
+  late final _tw_install_get_last_errorPtr = _lookup<
+          ffi
+          .NativeFunction<ffi.Int Function(ffi.Pointer<ffi.Char>, ffi.Size)>>(
+      'tw_install_get_last_error');
+  late final _tw_install_get_last_error = _tw_install_get_last_errorPtr
+      .asFunction<int Function(ffi.Pointer<ffi.Char>, int)>();
+
+  int tw_install_get_last_result() {
+    return _tw_install_get_last_result();
+  }
+
+  late final _tw_install_get_last_resultPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>(
+          'tw_install_get_last_result');
+  late final _tw_install_get_last_result =
+      _tw_install_get_last_resultPtr.asFunction<int Function()>();
+
+  int tw_install_reset_session() {
+    return _tw_install_reset_session();
+  }
+
+  late final _tw_install_reset_sessionPtr =
+      _lookup<ffi.NativeFunction<ffi.Int Function()>>(
+          'tw_install_reset_session');
+  late final _tw_install_reset_session =
+      _tw_install_reset_sessionPtr.asFunction<int Function()>();
 }
 
 final class __mbstate_t extends ffi.Union {
@@ -310,6 +442,14 @@ final class tw_battery_info extends ffi.Struct {
 }
 
 typedef tw_battery_info_t = tw_battery_info;
+
+const int TW_INSTALL_STATE_IDLE = 0;
+
+const int TW_INSTALL_STATE_RUNNING = 1;
+
+const int TW_INSTALL_STATE_SUCCESS = 2;
+
+const int TW_INSTALL_STATE_FAILED = 3;
 
 const int __has_safe_buffers = 1;
 

@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:aurora_recovery/common/l10n.dart';
 import 'package:aurora_recovery/widgets/toast.dart';
 import 'package:aurora_recovery/widgets/fake_safearea.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pty/flutter_pty.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:xterm/xterm.dart';
 
 import '../virtual_keyboard/twrp_keyboard.dart';
@@ -28,7 +30,7 @@ class _TerminalPageState extends State<TerminalPage> {
     WidgetsBinding.instance.endOfFrame.then((_) {
       if (mounted) _startPty();
 
-      Toast.show("左侧滑动可以打开抽屉哦~");
+      Toast.show(l10n.terminal_tips);
     });
   }
 
@@ -70,41 +72,26 @@ class _TerminalPageState extends State<TerminalPage> {
     return Material(
       color: defaultTheme.background,
       child: FakeSafearea(
+        top: ResponsiveBreakpoints.of(context).isMobile,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // return Center(child: CircularProgressIndicator());
             return Column(
               children: [
-                // Padding(
-                //   padding: const EdgeInsets.all(8),
-                //   child: Row(
-                //     children: [
-                //       ElevatedButton(
-                //         onPressed: _ptyReady ? _flashMagiskTest : null,
-                //         child: const Text(
-                //           '刷入 Magisk（测试）',
-                //           style: TextStyle(color: Colors.white70),
-                //         ),
-                //       ),
-                //       const SizedBox(width: 12),
-                //       const Expanded(
-                //         child: Text(
-                //           '固定路径：/tmp/Magisk-v30.7.apk（仅测试链路）',
-                //           style: TextStyle(color: Colors.white70),
-                //           overflow: TextOverflow.ellipsis,
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
                 Expanded(
-                  child: TerminalView(
-                    terminal,
-                    controller: terminalController,
-                    autofocus: true,
-                    backgroundOpacity: 1,
-                    theme: defaultTheme,
-                    textStyle: TerminalStyle(fontSize: 14, fontFamily: 'DroidSansMono'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: MediaQuery.removePadding(
+                      context: context,
+                      removeTop: true,
+                      child: TerminalView(
+                        terminal,
+                        controller: terminalController,
+                        autofocus: true,
+                        backgroundOpacity: 1,
+                        theme: defaultTheme,
+                        textStyle: TerminalStyle(fontSize: 14, fontFamily: 'DroidSansMono'),
+                      ),
+                    ),
                   ),
                 ),
                 TwrpKeyboard(
