@@ -529,25 +529,25 @@ a4:a9:30:83:b4:d2 5200 -26 [WPA2-PSK-CCMP][WPS][ESS] Laurie Lin 5G
 ### 12.2 示例：连接 `Laurie Lin 5G`
 
 ```bash
-WPA="wpa_cli  -p /tmp/recovery/sockets -i wlan0"
+WPA_CLI="wpa_cli  -p /tmp/recovery/sockets -i wlan0"
 # 返回新网络的 ID（整数）
-ID=$(adb shell $WPA add_network | tail -1)
-adb shell $WPA set_network $ID ssid '\"Laurie Lin 5G\"'
-adb shell $WPA set_network $ID psk '\"906262255\"'
+ID=$(adb shell $WPA_CLI add_network | tail -1)
+adb shell $WPA_CLI set_network $ID ssid '\"Laurie Lin 5G\"'
+adb shell $WPA_CLI set_network $ID psk '\"906262255\"'
 # 下面四行和自编译 wpa_cli/wpa_supplicant 不一样，但是没有是连接不上的
 # TODO: No，不要啊，下面代码不是上面的原因(2026.05.19)
-adb shell $WPA set_network $ID key_mgmt WPA-PSK
-adb shell $WPA set_network $ID proto RSN
-adb shell $WPA set_network $ID pairwise CCMP
+adb shell $WPA_CLI set_network $ID key_mgmt WPA-PSK
+adb shell $WPA_CLI set_network $ID proto RSN
+adb shell $WPA_CLI set_network $ID pairwise CCMP
 # a4:a9:30:83:b4:d2 是 5G AP 的 BSSID
-adb shell $WPA set_network $ID bssid a4:a9:30:83:b4:d2
+adb shell $WPA_CLI set_network $ID bssid a4:a9:30:83:b4:d2
 # 允许该网络被关联
-adb shell $WPA enable_network $ID
+adb shell $WPA_CLI enable_network $ID
 # 强制切换到该网络
-adb shell $WPA select_network $ID
+adb shell $WPA_CLI select_network $ID
 # 需要等待一会
 sleep 3
-adb shell $WPA status
+adb shell $WPA_CLI status
 ```
 
 关联成功后 `status` 输出：

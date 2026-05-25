@@ -34,6 +34,8 @@ mkdir twrp-16
 cd twrp-16
 repo init --depth=1 -u https://github.com/TWRP-Test/platform_manifest_twrp_aosp.git -b twrp-16.0
 git clone https://github.com/AuroraRecoveryProject/twrp_device_oplus_ossi device/oplus/ossi
+# 同步拉取源码
+repo sync -j8
 ```
 
 ### 执行编译

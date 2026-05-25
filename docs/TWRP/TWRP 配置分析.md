@@ -226,3 +226,107 @@ recovery/root/system/bin/bash
 ```
 
 最终构建的 recovery.img 再用 magiskboot 解包，得到的就是 `test binary override`，说明设备树二进制覆盖 TWRP 构建二进制
+
+## TWRP 运行后 /tmp/vendor/lib/modules 有大量驱动文件
+
+/tmp/vendor/lib/modules 不是编译时产生的，而是 TWRP 启动时在 RAM 中创建的。
+
+核心代码在 bootable/recovery/kernel_module_loader.cpp:250 的 Copy_Modules_To_Tmpfs() 函数：
+
+```c
+bool KernelModuleLoader::Copy_Modules_To_Tmpfs(std::string module_dir) {
+    std::string ramdisk_dir = "/tmp" + module_dir;   // "/tmp" + "/vendor/lib/modules"
+    // ...
+    while ((de = readdir(d)) != nullptr) {
+        if (de->d_type == DT_REG) {
+            std::string src  = module_dir + "/" + de->d_name;
+            std::string dest = ramdisk_dir + "/" + de->d_name;
+            TWFunc::copy_file(src, dest, 0700, false);  // 复制每一个 .ko 文件
+        }
+    }
+}
+```
+
+源目录 (如 /vendor/lib/modules/)
+    │
+    │ opendir() 打开源目录
+    │ readdir() 遍历每个条目
+    │ 如果是普通文件 (DT_REG)
+    │     → copy_file() 复制到 /tmp/vendor/lib/modules/
+    │
+    └── 结果：源目录里 EVERYTHING (.ko / .bin / .txt...) 全部复制到 /tmp
+        没有任何过滤，不关心 TW_LOAD_VENDOR_MODULES 里写了什么
+
+复制完成后，Write_Module_List() 才从所有文件里筛选出 TW_LOAD_VENDOR_MODULES 指定的那几个 .ko，写入 modules.load.twrp。最后
+libmodprobe 只加载列表里的模块。
+
+所以"大量驱动文件" = vendor 分区里所有的 .ko + 其他普通文件，一个不漏全复制过来了。
+
+---
+模块加载的完整时序（按你的设备配置）
+
+你的设备配置：
+
+- TW_LOAD_VENDOR_MODULES_EXCLUDE_GKI := true （跳过了 GKI 路径）
+- 未设置 TW_LOAD_PREBUILT_MODULES_AT_FIRST
+- 未设置 TW_LOAD_VENDOR_BOOT_MODULE
+
+TW_LOAD_VENDOR_MODULES_EXCLUDE_GKI 的作用是跳过 GKI 内核版本子目录，不去搜索 GKI 通用内核模块。
+
+代码在 kernel_module_loader.cpp:76-80：
+
+```c
+#ifndef TW_LOAD_VENDOR_MODULES_EXCLUDE_GKI
+    std::string gki = "/" + release[0] + "." + release[1] + "-gki";
+    module_dirs.push_back(base_dir + gki);              // /lib/modules/5.10-gki
+    vendor_module_dirs.push_back(vendor_base_dir + gki); // /vendor/lib/modules/5.10-gki
+#endif
+```
+
+定义了该标志时：
+
+- 不搜索 /lib/modules/N.N-gki（vendor_boot ramdisk 里的 GKI 模块）
+- 不搜索 /vendor/lib/modules/N.N-gki（vendor 分区里的 GKI 模块）
+
+不定义时：
+
+- 会多搜索这两个 GKI 子目录
+
+对于你的设备，TW_LOAD_VENDOR_MODULES 里的 4 个模块（adsp_loader_dlkm、oplus_chg_v2、stm_st54se_gpio、nxp-nci）都是 OPlus
+厂商私有模块，不在 GKI 目录里，开了这个标志可以减少两次无意义的目录扫描。
+
+以正常 Recovery 模式为例：
+
+阶段一: vendor 未挂载，尝试 ramdisk 自带路径
+  ├── /vendor/lib/modules       → TWRP ramdisk 内部，源目录为空/不存在 → 跳过
+  └── /vendor/lib/modules/1.1   → TWRP ramdisk 内部，源目录为空/不存在 → 跳过
+                                  （没有任何 .ko 被预置进 ramdisk）
+
+阶段二: 挂载 vendor 分区
+  └── ven->Mount(true)          → 如果 vendor 分区损坏/不存在 → 挂载失败
+
+阶段三: vendor 挂载后，再次尝试
+  ├── /vendor/lib/modules       → vendor 分区真实路径，复制全部 .ko 到 /tmp
+  ├── /vendor/lib/modules/1.1   → vendor 分区真实路径
+  └── /vendor_dlkm/lib/modules  → vendor_dlkm 分区
+
+---
+vendor 分区无法挂载时的兜底逻辑
+
+简单说：当前配置下，没有兜底。
+
+vendor 挂载失败
+    │
+    ├── 阶段三的 /vendor/lib/modules/* → 源目录不存在 → Copy_Modules_To_Tmpfs() 返回 false
+    │                                                       ↓
+    │                                          Write_Module_List() 不会被调用
+    │                                                       ↓
+    │                                          Try_And_Load_Modules 返回 0
+    │
+    ├── /vendor_dlkm/lib/modules → 可能还有（vendor_dlkm 独立分区）
+    │
+    └── 结果：modules_loaded = 0，4 个模块全部加载失败
+              Load_Vendor_Modules() 仍然 return true（不报错）
+              只设置 twrp.modules.loaded=true 属性
+
+整个流程没有 vendor 分区的兜底。代码假定模块要么在 ramdisk 预置，要么 vendor 分区可用。如果两者都没有，模块静默加载失败。
