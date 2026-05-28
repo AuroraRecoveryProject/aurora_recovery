@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:global_repository/global_repository.dart';
 
 import 'keyboard_layouts.dart';
 import 'keyboard_style.dart';
@@ -41,6 +42,8 @@ class TwrpKeyboardState extends State<TwrpKeyboard> {
 
   static const ansiEsc = '\x1b';
   static final backspace = String.fromCharCode(127);
+
+  late ColorScheme colorScheme = Theme.of(context).colorScheme;
 
   @override
   void initState() {
@@ -281,71 +284,23 @@ class TwrpKeyboardState extends State<TwrpKeyboard> {
         ctrlActive;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final height = widget.mode == TwKeyboardMode.full ? widget.style.height + 72.0 : widget.style.height;
-
-        return FutureBuilder<KeyboardLayoutsModel>(
-          future: layoutsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return Container(width: width, height: height, color: widget.style.bg);
-            }
-            if (!snapshot.hasData) {
-              return Container(width: width, height: height, color: widget.style.bg);
-            }
-
-            final rows = this.rows(snapshot.data!);
-            return Container(
-              width: width,
-              height: height,
-              color: widget.style.bg,
-              child: Column(
-                children: List.generate(rows.length, (rowIndex) {
-                  final row = rows[rowIndex];
-                  return Expanded(
-                    child: Row(
-                      children: List.generate(row.length, (colIndex) {
-                        final key = row[colIndex];
-                        return Expanded(
-                          flex: (key.units * 100).round(),
-                          child: Padding(
-                            padding: widget.style.keyMargin,
-                            child: buildKey(key, rowIndex, colIndex),
-                          ),
-                        );
-                      }, growable: false),
-                    ),
-                  );
-                }, growable: false),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget buildKey(TwKey key, int row, int col) {
     final highlighted = isHighlighted(row, col);
     final ctrlKeyActive = isCtrlKeyActive(key);
 
-    Color bg = key.isText ? widget.style.keyAlphaBg : widget.style.keyOtherBg;
+    Color bg = key.isText ? colorScheme.surface : colorScheme.surface;
     if (isShiftKey(key) && isShiftActive()) {
-      bg = isShiftLatched() ? widget.style.capsHighlight : widget.style.highlight;
+      bg = isShiftLatched() ? colorScheme.primary.withOpacityExact(0.6) : colorScheme.primary.withOpacityExact(0.2);
     }
-    if (ctrlKeyActive) bg = widget.style.ctrlHighlight;
-    if (highlighted) bg = widget.style.highlight;
+    if (ctrlKeyActive) bg = colorScheme.primary.withOpacityExact(0.6);
+    if (highlighted) bg = colorScheme.primary.withOpacityExact(0.2);
 
-    final isAlpha = key.isText && ((key.text?.codeUnitAt(0) ?? 0) >= 32);
-    final textColor = isAlpha ? widget.style.keyAlphaText : widget.style.keyOtherText;
+    final isAlpha = key.isText && ((key.text?.codeUnitAt(0) ?? 0) > 32);
+    // ctrl/esc/tab/backspace/enter/arrows
+    final textColor = isAlpha ? colorScheme.onSurface : colorScheme.onSurface.withOpacityExact(0.2);
     return Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: (event) {
-        // print('Key pressed: ${key.label}, logical: ${key.logicalKey}, text: ${key.text}');
         pressedKeysByPointer[event.pointer] = (row: row, col: col);
         setState(() {});
         startHold(event.pointer, key);
@@ -371,23 +326,82 @@ class TwrpKeyboardState extends State<TwrpKeyboard> {
                 key.label,
                 style: TextStyle(
                   color: textColor,
-                  fontSize: key.isText ? 20 : 16,
+                  fontSize: key.isText ? $(20) : $(16),
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
             if ((key.longPressText ?? '').isNotEmpty)
               Positioned(
-                right: 8,
-                top: 4,
+                right: $(8),
+                top: $(4),
                 child: Text(
                   key.longPressText!,
-                  style: TextStyle(color: widget.style.longPressText, fontSize: 11),
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withOpacityExact(0.6),
+                    fontSize: $(11),
+                  ),
                 ),
               ),
           ],
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final height = widget.mode == TwKeyboardMode.full ? widget.style.height + 72.0 : widget.style.height;
+
+        return FutureBuilder<KeyboardLayoutsModel>(
+          future: layoutsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return Container(width: width, height: height, color: colorScheme.surface);
+            }
+            if (!snapshot.hasData) {
+              return Container(width: width, height: height, color: colorScheme.surface);
+            }
+
+            final rows = this.rows(snapshot.data!);
+            return Container(
+              width: width,
+              height: height,
+              color: Theme.of(context).colorScheme.surface,
+              child: Column(
+                children: List.generate(
+                  rows.length,
+                  (rowIndex) {
+                    final row = rows[rowIndex];
+                    return Expanded(
+                      child: Row(
+                        children: List.generate(
+                          row.length,
+                          (colIndex) {
+                            final key = row[colIndex];
+                            return Expanded(
+                              flex: (key.units * 100).round(),
+                              child: Padding(
+                                padding: widget.style.keyMargin,
+                                child: buildKey(key, rowIndex, colIndex),
+                              ),
+                            );
+                          },
+                          growable: false,
+                        ),
+                      ),
+                    );
+                  },
+                  growable: false,
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
