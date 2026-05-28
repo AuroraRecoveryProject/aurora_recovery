@@ -1,6 +1,5 @@
-// ignore: depend_on_referenced_packages
-import 'package:global_repository/global_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:global_repository/global_repository.dart';
 
 class FakeSafearea extends StatefulWidget {
   const FakeSafearea({super.key, required this.child, this.top = true});

@@ -1,31 +1,49 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:aurora_recovery/widgets/fake_safearea.dart';
-import 'package:file_manager/file_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'package:shader_graph_example/assets.dart' as shader_graph_example;
+import 'package:responsive_framework/responsive_framework.dart';
+import 'package:global_repository/global_repository.dart';
+import 'package:file_manager/file_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:responsive_framework/responsive_framework.dart';
-import 'common/assets.dart';
-import 'generated/app_localizations.dart';
-import 'common/l10n.dart';
-import 'modules/flash_rom/flash_rom_dialog.dart';
-import 'services/device_info_service.dart';
-import 'services/setting_service.dart';
-import 'modules/setting/setting.dart';
-import 'modules/terminal/terminal_page.dart';
-import 'theme.dart';
+
 import 'modules/video_player/video_player_page.dart';
-// ignore: depend_on_referenced_packages
-import 'package:global_repository/global_repository.dart';
+import 'modules/flash_rom/flash_rom_dialog.dart';
+import 'modules/info_overlay/info_overlay.dart';
+import 'modules/terminal/terminal_page.dart';
+import 'modules/setting/setting.dart';
+import 'generated/app_localizations.dart';
+import 'services/services.dart';
 import 'modules/demo/demo_page.dart';
-import 'drawer.dart';
-import 'widgets/idle_dimmer.dart';
+import 'widgets/widgets.dart';
+
+// import 'theme/apple_theme.dart';
+// import 'theme/aurora_theme.dart';
+// import 'theme/binance_theme.dart';
+// import 'theme/coinbase_theme.dart';
+// import 'theme/ferrari_theme.dart';
+import 'theme/linear_theme.dart';
+// import 'theme/notion_theme.dart';
+// import 'theme/nvidia_theme.dart';
+// import 'theme/sentry_theme.dart';
+// import 'theme/shopify_theme.dart';
+// import 'theme/spacex_theme.dart';
+// import 'theme/spotify_theme.dart';
+// import 'theme/stripe_theme.dart';
+// import 'theme/supabase_theme.dart';
+// import 'theme/tesla_theme.dart';
+// import 'theme/vercel_theme.dart';
+// import 'theme/warp_theme.dart';
+
 import 'wifi/wifi_page.dart';
-import 'package:shader_graph_example/assets.dart' as shader_graph_example;
+import 'common/assets.dart';
+import 'common/l10n.dart';
+import 'drawer.dart';
 
 Future<void> main() async {
   int port = await FileServerService.instance.start();
@@ -71,7 +89,7 @@ class AuroraRecoveryApp extends StatefulWidget {
 }
 
 class _AuroraRecoveryAppState extends State<AuroraRecoveryApp> with WidgetsBindingObserver {
-  static const Duration _idleTimeout = Duration(seconds: kDebugMode ? 30 : 10);
+  static const Duration _idleTimeout = Duration(seconds: kDebugMode ? 9999 : 10);
   static const Duration _fadeDuration = Duration(milliseconds: 250);
   static const double _targetTouchSlop = 8.0;
 
@@ -111,7 +129,10 @@ class _AuroraRecoveryAppState extends State<AuroraRecoveryApp> with WidgetsBindi
       debugShowCheckedModeBanner: false,
       showPerformanceOverlay: showPerformanceOverlay,
       defaultTransition: Transition.cupertino,
-      theme: auroraDark,
+      theme: light,
+      darkTheme: dark,
+      // themeMode: ThemeMode.light,
+      themeMode: ThemeMode.dark,
       localizationsDelegates: L10n.localizationsDelegates,
       supportedLocales: L10n.supportedLocales,
       locale: Locale('en'),
@@ -242,6 +263,7 @@ class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> {
               () => Container(
                 color: colorScheme.surface,
                 child: FakeSafearea(
+                  top: ResponsiveBreakpoints.of(context).isMobile,
                   child: Scaffold(
                     appBar: AppBar(
                       title: Text(file.path),
@@ -373,111 +395,43 @@ class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> {
     ];
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: Builder(builder: (context) {
-        final data = ResponsiveBreakpoints.of(context);
-        if (data.isDesktop) {
-          return Row(
-            children: [
-              ArpDrawer<String>(
-                onItemSelected: (page) {
-                  _selectedPage = page;
-                  setState(() {});
-                },
-                items: drawerItems,
-              ),
-              Expanded(child: pages[_selectedPage]!),
-            ],
-          );
-        }
-        return Scaffold(
-          drawer: SizedBox(
-            width: 300,
-            child: ArpDrawer<String>(
-              onItemSelected: (page) {
-                _selectedPage = page;
-                setState(() {});
-                Get.back();
-              },
-              items: drawerItems,
-            ),
-          ),
-          body: pages[_selectedPage],
-        );
-      }),
-    );
-  }
-}
-
-/// 在屏幕上显示触摸点（类似 Android 开发者选项里的“显示点按操作”）
-///
-/// 用法：
-///
-/// MaterialApp(
-///   builder: (context, child) {
-///     return TouchIndicatorOverlay(child: child!);
-///   },
-/// )
-class TouchIndicatorOverlay extends StatefulWidget {
-  final Widget child;
-
-  const TouchIndicatorOverlay({
-    super.key,
-    required this.child,
-  });
-
-  @override
-  State<TouchIndicatorOverlay> createState() => _TouchIndicatorOverlayState();
-}
-
-class _TouchIndicatorOverlayState extends State<TouchIndicatorOverlay> {
-  final Map<int, Offset> _pointers = {};
-
-  void _update(PointerEvent event) {
-    setState(() {
-      if (event is PointerDownEvent || event is PointerMoveEvent || event is PointerHoverEvent) {
-        _pointers[event.pointer] = event.position;
-      } else if (event is PointerUpEvent || event is PointerCancelEvent || event is PointerRemovedEvent) {
-        _pointers.remove(event.pointer);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: _update,
-      onPointerMove: _update,
-      onPointerHover: _update,
-      onPointerUp: _update,
-      onPointerCancel: _update,
-      child: Stack(
+      body: Stack(
+        alignment: Alignment.center,
         children: [
-          widget.child,
-          IgnorePointer(
-            child: Stack(
-              children: _pointers.entries.map((entry) {
-                final position = entry.value;
-
-                return Positioned(
-                  left: position.dx - 18,
-                  top: position.dy - 18,
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey.withOpacity(0.5),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.6),
-                        width: 1,
-                      ),
+          Builder(
+            builder: (context) {
+              final data = ResponsiveBreakpoints.of(context);
+              if (data.isDesktop) {
+                return Row(
+                  children: [
+                    ArpDrawer<String>(
+                      onItemSelected: (page) {
+                        _selectedPage = page;
+                        setState(() {});
+                      },
+                      items: drawerItems,
                     ),
-                  ),
+                    Expanded(child: pages[_selectedPage]!),
+                  ],
                 );
-              }).toList(),
-            ),
+              }
+              return Scaffold(
+                drawer: SizedBox(
+                  width: 300,
+                  child: ArpDrawer<String>(
+                    onItemSelected: (page) {
+                      _selectedPage = page;
+                      setState(() {});
+                      Get.back();
+                    },
+                    items: drawerItems,
+                  ),
+                ),
+                body: pages[_selectedPage],
+              );
+            },
           ),
+          DeviceInfoOverlay(),
         ],
       ),
     );

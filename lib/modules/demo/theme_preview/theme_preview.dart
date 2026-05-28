@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../../theme.dart';
-import 'package:flutter/material.dart';
+import 'package:aurora_recovery/theme/linear_theme.dart';
 
 class ThemePreviewPage extends StatefulWidget {
   const ThemePreviewPage({super.key});
@@ -15,8 +13,8 @@ class _ThemePreviewPageState extends State<ThemePreviewPage> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: ThemePreview(theme: pinkLight)),
-        Expanded(child: ThemePreview(theme: pinkDark)),
+        Expanded(child: ThemePreview(theme: dark)),
+        Expanded(child: ThemePreview(theme: light)),
       ],
     );
   }

@@ -1,5 +1,10 @@
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+
 import 'package:shader_graph_example/examples/animation_control.dart';
 import 'package:shader_graph_example/examples/custom_uniforms.dart';
 import 'package:shader_graph_example/examples/float.dart';
@@ -8,10 +13,6 @@ import 'package:shader_graph_example/examples/multi_pass.dart';
 import 'package:shader_graph_example/examples/shader_input.dart';
 import 'package:shader_graph_example/examples/text_render.dart';
 import 'package:shader_graph_example/examples/wrap.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 double narrowWidthThreshold = 600;
 

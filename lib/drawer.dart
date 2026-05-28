@@ -1,11 +1,7 @@
-import 'package:aurora_recovery/widgets/fake_safearea.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-// ignore: depend_on_referenced_packages
 import 'package:global_repository/global_repository.dart';
-
-import 'services/device_info_service.dart';
+import 'package:aurora_recovery/widgets/fake_safearea.dart';
 
 class ArpDrawer<T> extends StatefulWidget {
   const ArpDrawer({
@@ -59,20 +55,6 @@ class _ArpDrawerState<T> extends State<ArpDrawer<T>> {
                         );
                       },
                     ),
-                  GetBuilder(
-                    init: DeviceInfoInstance,
-                    global: false,
-                    builder: (context) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('CPU:       ${DeviceInfoInstance.cpuUsage.toStringAsFixed(2)}%'),
-                          Text('GPU:       ${DeviceInfoInstance.gpuKernelUsage.toStringAsFixed(2)}%'),
-                          Text('Battery: ${DeviceInfoInstance.batteryValue}'),
-                        ],
-                      );
-                    },
-                  ),
                 ],
               ),
             ),

@@ -2,10 +2,11 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:aurora_recovery/generated_bindings.dart';
-import 'package:ffi/ffi.dart';
 import 'package:signale/signale.dart';
+import 'package:ffi/ffi.dart';
 import 'package:get/get.dart';
+
+import 'package:aurora_recovery/generated/aurora_ffi_bindings.dart';
 
 class DeviceInfoService extends GetxController {
   DeviceInfoService._();
@@ -13,7 +14,7 @@ class DeviceInfoService extends GetxController {
   static final DeviceInfoService instance = DeviceInfoService._();
 
   DynamicLibrary lib = DynamicLibrary.open("libtwrp_core_ffi.so");
-  late AuroraBindings ffi = AuroraBindings(lib);
+  late AuroraFfiBindings ffi = AuroraFfiBindings(lib);
 
   Timer? infoTimer;
   double cpuUsage = 0.0;

@@ -1,6 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:signale/signale.dart';
 
 class MultiTouchPage extends StatefulWidget {
   const MultiTouchPage({super.key});
@@ -18,25 +17,25 @@ class _MultiTouchPageState extends State<MultiTouchPage> {
       backgroundColor: Colors.black,
       body: Listener(
         onPointerDown: (event) {
-          log("Pointer down: ID=${event.pointer}, Position=(${event.localPosition.dx}, ${event.localPosition.dy})");
+          Log.i("Pointer down: ID=${event.pointer}, Position=(${event.localPosition.dx}, ${event.localPosition.dy})");
           setState(() {
             _pointers[event.pointer] = event.localPosition;
           });
         },
         onPointerMove: (event) {
-          // log("Pointer move: ID=${event.pointer}, Position=(${event.localPosition.dx}, ${event.localPosition.dy})");
+          // Log.i("Pointer move: ID=${event.pointer}, Position=(${event.localPosition.dx}, ${event.localPosition.dy})");
           setState(() {
             _pointers[event.pointer] = event.localPosition;
           });
         },
         onPointerUp: (event) {
-          log("Pointer up: ID=${event.pointer}, Position=(${event.localPosition.dx}, ${event.localPosition.dy})");
+          Log.i("Pointer up: ID=${event.pointer}, Position=(${event.localPosition.dx}, ${event.localPosition.dy})");
           setState(() {
             _pointers.remove(event.pointer);
           });
         },
         onPointerCancel: (event) {
-          // log("Pointer cancel: ID=${event.pointer}, Position=(${event.localPosition.dx}, ${event.localPosition.dy})");
+          // Log.i("Pointer cancel: ID=${event.pointer}, Position=(${event.localPosition.dx}, ${event.localPosition.dy})");
           setState(() {
             _pointers.remove(event.pointer);
           });

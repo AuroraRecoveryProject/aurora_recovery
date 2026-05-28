@@ -2,21 +2,21 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:aurora_recovery/generated_bindings.dart';
-import 'package:aurora_recovery/widgets/toast.dart';
-import 'package:ffi/ffi.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 import 'package:signale/signale.dart';
+import 'package:ffi/ffi.dart';
+
+import 'package:aurora_recovery/generated/aurora_ffi_bindings.dart';
+import 'package:aurora_recovery/widgets/toast.dart';
 
 class FlashRomService {
   FlashRomService._();
   static const tag = 'FlashRomService';
 
   static final FlashRomService instance = FlashRomService._();
+
   DynamicLibrary lib = DynamicLibrary.open("libtwrp_core_ffi.so");
-  late AuroraBindings ffi = AuroraBindings(lib);
+  late AuroraFfiBindings ffi = AuroraFfiBindings(lib);
   bool _installReady = false;
   String installStateLabel = 'idle';
   int installProgress = 0;

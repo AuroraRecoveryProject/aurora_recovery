@@ -1,14 +1,14 @@
-import 'package:aurora_recovery/common/l10n.dart';
-import 'package:aurora_recovery/widgets/fake_safearea.dart';
 import 'package:flutter/material.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+import 'package:global_repository/global_repository.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 
-import 'wifi_result.dart';
-import 'package:global_repository/global_repository.dart';
+import 'package:aurora_recovery/widgets/fake_safearea.dart';
+import 'package:aurora_recovery/common/l10n.dart';
 import 'wifi_signal_strength.dart';
 import 'wifi_controller.dart';
+import 'wifi_result.dart';
 
 class WifiPage extends StatefulWidget {
   const WifiPage({super.key});

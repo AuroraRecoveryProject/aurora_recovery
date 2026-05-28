@@ -1,9 +1,10 @@
-import 'package:aurora_recovery/modules/terminal/terminal_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:xterm/xterm.dart';
-import 'package:aurora_recovery/common/l10n.dart';
+
+import 'package:aurora_recovery/modules/terminal/terminal_page.dart';
 import 'package:aurora_recovery/services/flash_rom_service.dart';
+import 'package:aurora_recovery/common/l10n.dart';
 
 // ignore: depend_on_referenced_packages
 import 'package:global_repository/global_repository.dart';

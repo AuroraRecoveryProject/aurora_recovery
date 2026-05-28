@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'wifi_signal_strength.dart';
 
 class WifiResult {

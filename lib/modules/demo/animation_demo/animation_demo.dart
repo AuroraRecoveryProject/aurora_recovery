@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' hide ViewMetric;
+import 'package:flutter/material.dart';
 import 'package:global_repository/global_repository.dart';
 
 class AnimationDemo extends StatelessWidget {

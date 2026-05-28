@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:aurora_recovery/common/l10n.dart';
-import 'package:aurora_recovery/widgets/toast.dart';
-import 'package:aurora_recovery/widgets/fake_safearea.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pty/flutter_pty.dart';
+
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:flutter_pty/flutter_pty.dart';
 import 'package:xterm/xterm.dart';
 
-import '../virtual_keyboard/twrp_keyboard.dart';
+import 'package:aurora_recovery/modules/virtual_keyboard/twrp_keyboard.dart';
+import 'package:aurora_recovery/widgets/fake_safearea.dart';
+import 'package:aurora_recovery/widgets/toast.dart';
+import 'package:aurora_recovery/common/l10n.dart';
 
 class TerminalPage extends StatefulWidget {
   const TerminalPage({super.key});

@@ -1,15 +1,14 @@
 import 'dart:io';
-import 'package:aurora_recovery/services/device_info_service.dart';
-import 'package:aurora_recovery/services/setting_service.dart';
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-// ignore: depend_on_referenced_packages
 import 'package:global_repository/global_repository.dart';
+
+import 'package:aurora_recovery/services/device_info_service.dart';
+import 'package:aurora_recovery/services/setting_service.dart';
+import 'package:aurora_recovery/widgets/fake_safearea.dart';
 import 'package:aurora_recovery/common/l10n.dart';
 import 'package:aurora_recovery/main.dart';
-import 'package:aurora_recovery/widgets/fake_safearea.dart';
 
 class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
