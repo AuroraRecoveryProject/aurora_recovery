@@ -56,7 +56,7 @@ const Color seedColor = Color(0xFF06B6D4);
 // ============================================================
 // Aurora Cyan — Dark Theme
 // ============================================================
-final ThemeData auroraDark = ThemeData(
+final ThemeData dark = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
   fontFamily: 'Robot',
@@ -222,7 +222,7 @@ final ThemeData auroraDark = ThemeData(
 // ============================================================
 // Aurora Cyan — Light Theme
 // ============================================================
-final ThemeData auroraLight = ThemeData(
+final ThemeData light = ThemeData(
   useMaterial3: true,
   fontFamily: 'NotoSansCJK',
   brightness: Brightness.light,
@@ -374,12 +374,3 @@ final ThemeData auroraLight = ThemeData(
     }),
   ),
 );
-
-// ============================================================
-// Legacy aliases
-// ============================================================
-final ThemeData darkTheme = auroraDark;
-final ThemeData lightTheme = auroraLight;
-
-final ThemeData pinkLight = auroraLight;
-final ThemeData pinkDark = auroraDark;
