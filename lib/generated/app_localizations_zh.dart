@@ -90,4 +90,7 @@ class L10nZh extends L10n {
 
   @override
   String get close => '关闭';
+
+  @override
+  String get language => '语言';
 }

@@ -5,25 +5,27 @@ import 'package:file_manager/file_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:xterm/xterm.dart';
 import 'common/assets.dart';
 import 'generated/app_localizations.dart';
 import 'common/l10n.dart';
 import 'modules/flash_rom/flash_rom_dialog.dart';
-import 'services/flash_rom_service.dart';
-import 'services/global.dart';
-import 'setting/setting.dart';
-import 'terminal/terminal_page.dart';
+import 'services/device_info_service.dart';
+import 'services/setting_service.dart';
+import 'modules/setting/setting.dart';
+import 'modules/terminal/terminal_page.dart';
 import 'theme.dart';
-import 'video_player/video_player_page.dart';
+import 'modules/video_player/video_player_page.dart';
 // ignore: depend_on_referenced_packages
 import 'package:global_repository/global_repository.dart';
-import 'demo/demo_page.dart';
+import 'modules/demo/demo_page.dart';
 import 'drawer.dart';
+import 'widgets/idle_dimmer.dart';
 import 'wifi/wifi_page.dart';
+import 'package:shader_graph_example/assets.dart' as shader_graph_example;
 
 Future<void> main() async {
   int port = await FileServerService.instance.start();
@@ -32,10 +34,31 @@ Future<void> main() async {
   controller.setPort(port);
   controller.enterHomeDir();
   Get.put(controller);
-
   Config.initPackageMode();
+  shader_graph_example.Assets.initPackages();
   runApp(const AuroraRecoveryApp());
-  Global.init();
+  initArp();
+}
+
+void initArp() {
+  DeviceInfoService.instance.init();
+  SettingService.instance.init();
+  final scripts = ['color_print', 'cmatrix', 'nettest', 'curl'];
+  for (final script in scripts) {
+    rootBundle.load('assets/executable/$script').then((data) {
+      final bytes = data.buffer.asUint8List();
+      final file = File('/tmp/$script');
+      file.writeAsBytes(bytes).then((_) {
+        Log.i('Copied $script to /tmp/$script');
+        // set executable
+        Process.run('chmod', ['+x', '/tmp/$script']).then((result) {
+          Log.i('Set executable exitCode: ${result.exitCode}');
+        });
+      });
+    });
+  }
+  // 'echo "nameserver 223.5.5.5" > /etc/resolv.conf'
+  File('/etc/resolv.conf').writeAsString('nameserver 223.5.5.5');
 }
 
 bool showPerformanceOverlay = false;
@@ -52,9 +75,6 @@ class _AuroraRecoveryAppState extends State<AuroraRecoveryApp> with WidgetsBindi
   static const Duration _fadeDuration = Duration(milliseconds: 250);
   static const double _targetTouchSlop = 8.0;
 
-  Timer? _idleTimer;
-  bool _isDimmed = false;
-
   MediaQueryData _withRecoveryGestureSettings(MediaQueryData data) {
     // See: docs/ARP 触控 Slop 排查记录.md
     final double? currentTouchSlop = data.gestureSettings.touchSlop;
@@ -70,41 +90,12 @@ class _AuroraRecoveryAppState extends State<AuroraRecoveryApp> with WidgetsBindi
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _restartIdleTimer();
   }
 
   @override
   void dispose() {
-    _idleTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  void _restartIdleTimer() {
-    _idleTimer?.cancel();
-    _idleTimer = Timer(_idleTimeout, _dimScreen);
-  }
-
-  void _dimScreen() {
-    if (!mounted || _isDimmed) {
-      return;
-    }
-    setState(() {
-      _isDimmed = true;
-    });
-  }
-
-  void _handlePointerActivity(PointerEvent event) {
-    if (event is! PointerDownEvent && event is! PointerMoveEvent && event is! PointerPanZoomStartEvent) {
-      return;
-    }
-    _restartIdleTimer();
-    if (!_isDimmed) {
-      return;
-    }
-    setState(() {
-      _isDimmed = false;
-    });
   }
 
   @override
@@ -127,30 +118,36 @@ class _AuroraRecoveryAppState extends State<AuroraRecoveryApp> with WidgetsBindi
       builder: (context, child) {
         final mediaQuery = _withRecoveryGestureSettings(MediaQuery.of(context));
         return ResponsiveBreakpoints.builder(
-          child: Listener(
-            behavior: HitTestBehavior.translucent,
-            onPointerDown: _handlePointerActivity,
-            onPointerMove: _handlePointerActivity,
-            onPointerPanZoomStart: _handlePointerActivity,
-            child: AbsorbPointer(
-              absorbing: _isDimmed,
-              child: AnimatedOpacity(
-                duration: _fadeDuration,
-                opacity: _isDimmed ? 0 : 1,
-                child: MediaQuery(
-                  data: mediaQuery,
-                  child: Builder(builder: (context) {
-                    FlutterView view = PlatformDispatcher.instance.views.first;
-                    Log.i("Current Device Pixel Ratio: ${view.devicePixelRatio}");
-                    Log.i("Current Screen Size: ${view.physicalSize / view.devicePixelRatio}");
-                    Log.i("Current touchSlop: ${MediaQuery.of(context).gestureSettings.touchSlop}");
-                    return ViewMetric(
-                      uiWidth: 414,
-                      screenWidth: MediaQuery.of(context).size.width,
-                      child: child!,
-                    );
-                  }),
-                ),
+          child: IdleDimmer(
+            idleTimeout: _idleTimeout,
+            fadeDuration: _fadeDuration,
+            opacity: 0.2,
+            onDimmedChanged: (isDimmed) {
+              Log.i("Screen dimmed: $isDimmed");
+              if (isDimmed) {
+                SettingInstance.brightnessPct = 0;
+                SettingInstance.ffi.tw_display_set_brightness_percent(SettingInstance.brightnessPct);
+                setState(() {});
+              } else {
+                SettingInstance.brightnessPct = 100;
+                SettingInstance.ffi.tw_display_set_brightness_percent(SettingInstance.brightnessPct);
+                setState(() {});
+              }
+            },
+            child: TouchIndicatorOverlay(
+              child: MediaQuery(
+                data: mediaQuery,
+                child: Builder(builder: (context) {
+                  FlutterView view = PlatformDispatcher.instance.views.first;
+                  Log.i("Current Device Pixel Ratio: ${view.devicePixelRatio}");
+                  Log.i("Current Screen Size: ${view.physicalSize / view.devicePixelRatio}");
+                  Log.i("Current touchSlop: ${MediaQuery.of(context).gestureSettings.touchSlop}");
+                  return ViewMetric(
+                    uiWidth: 414,
+                    screenWidth: MediaQuery.of(context).size.width,
+                    child: child!,
+                  );
+                }),
               ),
             ),
           ),
@@ -407,6 +404,82 @@ class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> {
           body: pages[_selectedPage],
         );
       }),
+    );
+  }
+}
+
+/// 在屏幕上显示触摸点（类似 Android 开发者选项里的“显示点按操作”）
+///
+/// 用法：
+///
+/// MaterialApp(
+///   builder: (context, child) {
+///     return TouchIndicatorOverlay(child: child!);
+///   },
+/// )
+class TouchIndicatorOverlay extends StatefulWidget {
+  final Widget child;
+
+  const TouchIndicatorOverlay({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  State<TouchIndicatorOverlay> createState() => _TouchIndicatorOverlayState();
+}
+
+class _TouchIndicatorOverlayState extends State<TouchIndicatorOverlay> {
+  final Map<int, Offset> _pointers = {};
+
+  void _update(PointerEvent event) {
+    setState(() {
+      if (event is PointerDownEvent || event is PointerMoveEvent || event is PointerHoverEvent) {
+        _pointers[event.pointer] = event.position;
+      } else if (event is PointerUpEvent || event is PointerCancelEvent || event is PointerRemovedEvent) {
+        _pointers.remove(event.pointer);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: _update,
+      onPointerMove: _update,
+      onPointerHover: _update,
+      onPointerUp: _update,
+      onPointerCancel: _update,
+      child: Stack(
+        children: [
+          widget.child,
+          IgnorePointer(
+            child: Stack(
+              children: _pointers.entries.map((entry) {
+                final position = entry.value;
+
+                return Positioned(
+                  left: position.dx - 18,
+                  top: position.dy - 18,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey.withOpacity(0.5),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.6),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

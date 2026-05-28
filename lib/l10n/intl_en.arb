@@ -26,5 +26,6 @@
   "getting_ip": "Getting IP address",
   "connecting": "Connecting",
   "connected": "Connected",
-  "close": "Close"
+  "close": "Close",
+  "language": "Language"
 }

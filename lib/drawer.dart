@@ -5,7 +5,7 @@ import 'package:responsive_framework/responsive_framework.dart';
 // ignore: depend_on_referenced_packages
 import 'package:global_repository/global_repository.dart';
 
-import 'services/global.dart';
+import 'services/device_info_service.dart';
 
 class ArpDrawer<T> extends StatefulWidget {
   const ArpDrawer({
@@ -60,15 +60,15 @@ class _ArpDrawerState<T> extends State<ArpDrawer<T>> {
                       },
                     ),
                   GetBuilder(
-                    init: Global,
+                    init: DeviceInfoInstance,
                     global: false,
                     builder: (context) {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('CPU:       ${Global.cpuUsage.toStringAsFixed(2)}%'),
-                          Text('GPU:       ${Global.gpuKernelUsage.toStringAsFixed(2)}%'),
-                          Text('Battery: ${Global.batteryValue}'),
+                          Text('CPU:       ${DeviceInfoInstance.cpuUsage.toStringAsFixed(2)}%'),
+                          Text('GPU:       ${DeviceInfoInstance.gpuKernelUsage.toStringAsFixed(2)}%'),
+                          Text('Battery: ${DeviceInfoInstance.batteryValue}'),
                         ],
                       );
                     },

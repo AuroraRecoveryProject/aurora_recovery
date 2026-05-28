@@ -63,6 +63,7 @@ class FlashRomService {
     }
 
     ffi.tw_install_reset_session();
+    _logOffset = 0;
 
     installStateLabel = 'starting';
     installResult = 0;
@@ -112,8 +113,12 @@ class FlashRomService {
         Log.i('Install is running...', tag);
       } else if (state == TW_INSTALL_STATE_SUCCESS) {
         Log.i('Install completed successfully!', tag);
+        final tail = readInstallLogChunk();
+        if (onLog != null && tail.isNotEmpty) onLog(tail);
         break;
       } else if (state == TW_INSTALL_STATE_FAILED) {
+        final tail = readInstallLogChunk();
+        if (onLog != null && tail.isNotEmpty) onLog(tail);
         final errorBuffer = calloc<Char>(4096);
         ffi.tw_install_get_last_error(errorBuffer, 4096);
         Log.e('Install error:\n${errorBuffer.cast<Utf8>().toDartString()}', tag);
@@ -127,11 +132,10 @@ class FlashRomService {
   }
 
   String readInstallLogChunk() {
-    const bufferSize = 16 * 1024;
+    const bufferSize = 64 * 1024;
 
     final buffer = calloc<Char>(bufferSize);
     final nextOffsetPtr = calloc<Uint64>();
-
     try {
       final ret = ffi.tw_install_read_log(
         _logOffset,
@@ -139,14 +143,15 @@ class FlashRomService {
         bufferSize,
         nextOffsetPtr,
       );
-
-      if (ret != 0) {
-        throw Exception('tw_install_read_log failed: $ret');
+      if (ret == 0) {
+        final text = buffer.cast<Utf8>().toDartString();
+        _logOffset = nextOffsetPtr.value;
+        return text;
       }
-
-      final text = buffer.cast<Utf8>().toDartString();
-      _logOffset = nextOffsetPtr.value;
-      return text;
+      // ENOSPC (-28)：本轮 buffer 不够，下一轮自然会继续；offset 不前进。
+      // 其他错误：忽略本轮，记日志即可。
+      Log.w('tw_install_read_log returned $ret, skipping this poll', tag);
+      return '';
     } finally {
       calloc.free(buffer);
       calloc.free(nextOffsetPtr);

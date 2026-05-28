@@ -26,5 +26,6 @@
   "getting_ip": "获取 IP 地址中",
   "connecting": "正在连接",
   "connected": "已连接",
-  "close": "关闭"
+  "close": "关闭",
+  "language": "语言"
 }

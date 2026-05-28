@@ -6,8 +6,8 @@ import 'package:responsive_framework/responsive_framework.dart';
 // ignore: depend_on_referenced_packages
 import 'package:global_repository/global_repository.dart';
 
-import 'package:aurora_recovery/demo/heavy_demo/heavy_ui_demo.dart';
-import 'package:aurora_recovery/demo/muitifinger/muitifinger.dart';
+import 'package:aurora_recovery/modules/demo/heavy_demo/heavy_ui_demo.dart';
+import 'package:aurora_recovery/modules/demo/muitifinger/muitifinger.dart';
 import 'package:aurora_recovery/common/l10n.dart';
 import 'package:aurora_recovery/widgets/fake_safearea.dart';
 

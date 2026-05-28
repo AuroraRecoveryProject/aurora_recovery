@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:aurora_recovery/common/l10n.dart';
-import 'package:aurora_recovery/virtual_keyboard/virtual_keyboard.dart';
+import 'package:aurora_recovery/modules/virtual_keyboard/virtual_keyboard.dart';
 import 'package:aurora_recovery/widgets/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

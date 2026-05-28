@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:aurora_recovery/services/device_info_service.dart';
+import 'package:aurora_recovery/services/setting_service.dart';
 import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
@@ -7,7 +9,6 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:global_repository/global_repository.dart';
 import 'package:aurora_recovery/common/l10n.dart';
 import 'package:aurora_recovery/main.dart';
-import 'package:aurora_recovery/services/global.dart';
 import 'package:aurora_recovery/widgets/fake_safearea.dart';
 
 class SettingPage extends StatefulWidget {
@@ -47,23 +48,23 @@ class _SettingPageState extends State<SettingPage> {
               spacing: $(8),
               children: [
                 Text(
-                  "${l10n.battery}: ${Global.batteryValue}",
+                  "${l10n.battery}: ${DeviceInfoInstance.batteryValue}",
                   style: TextStyle(
                     fontSize: $(16),
                   ),
                 ),
                 SizedBox(height: $(16)),
                 Text(
-                  "${l10n.brightness}: ${Global.brightnessPct}%",
+                  "${l10n.brightness}: ${SettingInstance.brightnessPct}%",
                   style: TextStyle(
                     fontSize: $(16),
                   ),
                 ),
                 SliderContainer(
-                  value: Global.brightnessPct.toDouble(),
+                  value: SettingInstance.brightnessPct.toDouble(),
                   onChanged: (value) {
-                    Global.brightnessPct = value.toInt();
-                    Global.ffi.tw_display_set_brightness_percent(Global.brightnessPct);
+                    SettingInstance.brightnessPct = value.toInt();
+                    SettingInstance.ffi.tw_display_set_brightness_percent(SettingInstance.brightnessPct);
                     setState(() {});
                   },
                 ),
@@ -92,7 +93,7 @@ class _SettingPageState extends State<SettingPage> {
                   spacing: $(12),
                   children: [
                     Text(
-                      '语言',
+                      l10n.language,
                       style: TextStyle(
                         fontSize: $(16),
                       ),
@@ -101,20 +102,19 @@ class _SettingPageState extends State<SettingPage> {
                 ),
                 Row(
                   children: [
-                    Radio<String>(
-                      value: 'zh',
+                    RadioGroup<String>(
                       groupValue: Get.locale?.languageCode,
                       onChanged: (value) {
                         Get.updateLocale(Locale(value!));
                       },
-                    ),
-                    Text('中文'),
-                    Radio<String>(
-                      value: 'en',
-                      groupValue: Get.locale?.languageCode,
-                      onChanged: (value) {
-                        Get.updateLocale(Locale(value!));
-                      },
+                      child: Row(
+                        children: [
+                          Radio(value: 'zh'),
+                          Text('中文'),
+                          Radio(value: 'en'),
+                          Text('English'),
+                        ],
+                      ),
                     ),
                   ],
                 ),

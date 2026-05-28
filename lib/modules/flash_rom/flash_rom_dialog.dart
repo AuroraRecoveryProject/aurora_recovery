@@ -1,4 +1,4 @@
-import 'package:aurora_recovery/terminal/terminal_page.dart';
+import 'package:aurora_recovery/modules/terminal/terminal_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:xterm/xterm.dart';

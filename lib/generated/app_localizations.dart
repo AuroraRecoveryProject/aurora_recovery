@@ -258,6 +258,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {
