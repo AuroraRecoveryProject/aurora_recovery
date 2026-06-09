@@ -1,0 +1,37 @@
+
+=== CRASH: Signal 11 (SIGSEGV) ===
+Memory maps (flutter/runner):
+  62a0722000-62a07ea000 r--p 00000000 00:20 1154                           /tmp/aurora_recovery/flutter-runner
+  62a07ea000-62a0a0b000 r-xp 000c7000 00:20 1154                           /tmp/aurora_recovery/flutter-runner
+  62a0a0b000-62a0a1c000 r--p 002e7000 00:20 1154                           /tmp/aurora_recovery/flutter-runner
+  62a0a1c000-62a0a1e000 rw-p 002f7000 00:20 1154                           /tmp/aurora_recovery/flutter-runner
+  78d208c000-78d208f000 r-xp 00000000 00:20 1150                           /tmp/aurora_recovery/bundle/lib/libflutter_pty.so
+  78d2092000-78d2094000 r--p 00002000 00:20 1150                           /tmp/aurora_recovery/bundle/lib/libflutter_pty.so
+  78d2097000-78d2098000 rw-p 00003000 00:20 1150                           /tmp/aurora_recovery/bundle/lib/libflutter_pty.so
+  7ba6a4a000-7ba8bd3000 r-xp 00000000 00:20 1155                           /tmp/aurora_recovery/bundle/lib/libflutter_engine.so
+  7ba8be2000-7ba8c60000 r--p 02188000 00:20 1155                           /tmp/aurora_recovery/bundle/lib/libflutter_engine.so
+  7ba8c6f000-7ba8c73000 rw-p 02205000 00:20 1155                           /tmp/aurora_recovery/bundle/lib/libflutter_engine.so
+Backtrace:
+  #0 pc 62a0826404 ???
+  #1 pc 848 [vdso] (__kernel_rt_sigreturn)
+  #2 pc 7ba2eb1190 ???
+  #3 pc 62a09924b0 ???
+  #4 pc 62a08202e4 ???
+  #5 pc 62a082191c ???
+  #6 pc 62a0821038 ???
+  #7 pc 62a0824400 ???
+  #8 pc 62a07fa48c ???
+  #9 pc 62a07fa2e4 ???
+  #a pc 62a0815fd0 ???
+  #b pc 62a0814f44 ???
+  #c pc 62a07ecaf0 ???
+  #d pc 7ba8330a0c ???
+  #e pc 7ba833e3d4 ???
+  #f pc 7ba833e2f0 ???
+  #10 pc 18e8f00 /tmp/aurora_recovery/bundle/lib/libflutter_engine.so (FlutterEngineRunTask)
+  #11 pc 62a07ed474 ???
+  #12 pc 62a07f1be4 ???
+  #13 pc 62a082519c ???
+  #14 pc 62a0825c14 ???
+  #15 pc 69ecc /system/lib64/libc.so (__libc_init)
+=== END BACKTRACE ===
