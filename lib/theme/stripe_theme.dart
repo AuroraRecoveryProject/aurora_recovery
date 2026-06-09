@@ -44,7 +44,7 @@ const Color _stripeSeed = Color(0xFF635BFF);
 // ============================================================
 final ThemeData dark = ThemeData(
   useMaterial3: true,
-  fontFamily: 'Robot',
+  fontFamily: 'Roboto',
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark(
     primary: Color(0xFF635BFF),
@@ -53,24 +53,20 @@ final ThemeData dark = ThemeData(
     onPrimaryContainer: Color(0xFFCFC8FF),
     primaryFixed: Color(0xFFCFC8FF),
     primaryFixedDim: Color(0xFF9A90FF),
-
     secondary: Color(0xFF7A73FF),
     onSecondary: Color(0xFFFFFFFF),
     secondaryContainer: Color(0xFF201A5A),
     onSecondaryContainer: Color(0xFFCFC8FF),
     secondaryFixed: Color(0xFFCFC8FF),
     secondaryFixedDim: Color(0xFF9A90FF),
-
     tertiary: Color(0xFF00D4FF),
     onTertiary: Color(0xFF001A20),
     tertiaryContainer: Color(0xFF003545),
     onTertiaryContainer: Color(0xFFB3F0FF),
-
     error: Color(0xFFF43F5E),
     onError: Color(0xFFFFFFFF),
     errorContainer: Color(0xFF4A0D1A),
     onErrorContainer: Color(0xFFFFD9DF),
-
     surface: Color(0xFF0F0D16),
     onSurface: Color(0xFFE8E6F0),
     onSurfaceVariant: Color(0xFF8A87A0),
@@ -79,7 +75,6 @@ final ThemeData dark = ThemeData(
     surfaceContainer: Color(0xFF15131F),
     surfaceContainerHigh: Color(0xFF1D1A2A),
     surfaceContainerHighest: Color(0xFF252235),
-
     outline: Color(0xFF2E2A3E),
     outlineVariant: Color(0xFF1D1A2A),
     shadow: Color(0xFF000000),
@@ -90,14 +85,12 @@ final ThemeData dark = ThemeData(
     inversePrimary: Color(0xFF4238CC),
   ),
   scaffoldBackgroundColor: const Color(0xFF0F0D16),
-
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFF15131F),
     foregroundColor: Color(0xFFE8E6F0),
     elevation: 0,
     centerTitle: true,
   ),
-
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFF635BFF),
@@ -114,7 +107,6 @@ final ThemeData dark = ThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
   ),
-
   inputDecorationTheme: const InputDecorationTheme(
     filled: true,
     fillColor: Color(0xFF15131F),
@@ -135,10 +127,8 @@ final ThemeData dark = ThemeData(
       borderSide: BorderSide(color: Color(0xFFF43F5E)),
     ),
   ),
-
   dividerColor: const Color(0xFF2E2A3E),
   dividerTheme: const DividerThemeData(color: Color(0xFF2E2A3E), thickness: 1),
-
   cardTheme: CardThemeData(
     color: const Color(0xFF15131F),
     elevation: 0,
@@ -147,7 +137,6 @@ final ThemeData dark = ThemeData(
       side: const BorderSide(color: Color(0xFF2E2A3E)),
     ),
   ),
-
   textTheme: const TextTheme(
     displayLarge: TextStyle(color: Color(0xFFE8E6F0), fontWeight: FontWeight.w300),
     displayMedium: TextStyle(color: Color(0xFFE8E6F0), fontWeight: FontWeight.w300),
@@ -165,13 +154,11 @@ final ThemeData dark = ThemeData(
     labelMedium: TextStyle(color: Color(0xFF8A87A0)),
     labelSmall: TextStyle(color: Color(0xFF6B6880)),
   ),
-
   tabBarTheme: const TabBarThemeData(
     labelColor: Color(0xFF635BFF),
     unselectedLabelColor: Color(0xFF8A87A0),
     indicatorColor: Color(0xFF635BFF),
   ),
-
   switchTheme: SwitchThemeData(
     thumbColor: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.selected)) return const Color(0xFF635BFF);
@@ -198,24 +185,20 @@ final ThemeData light = ThemeData(
     onPrimaryContainer: Color(0xFF0F0C40),
     primaryFixed: Color(0xFFE8E5FF),
     primaryFixedDim: Color(0xFFC8C0FF),
-
     secondary: Color(0xFF5C55D6),
     onSecondary: Color(0xFFFFFFFF),
     secondaryContainer: Color(0xFFE0DDFF),
     onSecondaryContainer: Color(0xFF120D3A),
     secondaryFixed: Color(0xFFE0DDFF),
     secondaryFixedDim: Color(0xFFC8C0FF),
-
     tertiary: Color(0xFF007A99),
     onTertiary: Color(0xFFFFFFFF),
     tertiaryContainer: Color(0xFFB3F0FF),
     onTertiaryContainer: Color(0xFF001A20),
-
     error: Color(0xFFD3163C),
     onError: Color(0xFFFFFFFF),
     errorContainer: Color(0xFFFFD9DF),
     onErrorContainer: Color(0xFF40000C),
-
     surface: Color(0xFFF8F7FF),
     onSurface: Color(0xFF15131F),
     onSurfaceVariant: Color(0xFF5E5B72),
@@ -224,7 +207,6 @@ final ThemeData light = ThemeData(
     surfaceContainer: Color(0xFFEBE8F5),
     surfaceContainerHigh: Color(0xFFE5E2F0),
     surfaceContainerHighest: Color(0xFFDFDCEB),
-
     outline: Color(0xFFCAC6D6),
     outlineVariant: Color(0xFFDFDCEB),
     shadow: Color(0xFF000000),
@@ -235,14 +217,12 @@ final ThemeData light = ThemeData(
     inversePrimary: Color(0xFF9A90FF),
   ),
   scaffoldBackgroundColor: const Color(0xFFF8F7FF),
-
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFFEBE8F5),
     foregroundColor: Color(0xFF15131F),
     elevation: 0,
     centerTitle: true,
   ),
-
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFF4238CC),
@@ -251,7 +231,6 @@ final ThemeData light = ThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
   ),
-
   inputDecorationTheme: const InputDecorationTheme(
     filled: true,
     fillColor: Color(0xFFEBE8F5),
@@ -272,10 +251,8 @@ final ThemeData light = ThemeData(
       borderSide: BorderSide(color: Color(0xFFD3163C)),
     ),
   ),
-
   dividerColor: const Color(0xFFCAC6D6),
   dividerTheme: const DividerThemeData(color: Color(0xFFCAC6D6), thickness: 1),
-
   cardTheme: CardThemeData(
     color: const Color(0xFFEBE8F5),
     elevation: 0,
@@ -284,7 +261,6 @@ final ThemeData light = ThemeData(
       side: const BorderSide(color: Color(0xFFCAC6D6)),
     ),
   ),
-
   textTheme: const TextTheme(
     displayLarge: TextStyle(color: Color(0xFF15131F), fontWeight: FontWeight.w300),
     displayMedium: TextStyle(color: Color(0xFF15131F), fontWeight: FontWeight.w300),
@@ -302,13 +278,11 @@ final ThemeData light = ThemeData(
     labelMedium: TextStyle(color: Color(0xFF5E5B72)),
     labelSmall: TextStyle(color: Color(0xFF7D7A90)),
   ),
-
   tabBarTheme: const TabBarThemeData(
     labelColor: Color(0xFF4238CC),
     unselectedLabelColor: Color(0xFF5E5B72),
     indicatorColor: Color(0xFF4238CC),
   ),
-
   switchTheme: SwitchThemeData(
     thumbColor: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.selected)) return const Color(0xFF4238CC);

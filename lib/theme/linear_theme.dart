@@ -44,7 +44,7 @@ const Color _linearSeed = Color(0xFF5E6AD2);
 // ============================================================
 final ThemeData dark = ThemeData(
   useMaterial3: true,
-  fontFamily: 'Robot',
+  fontFamily: 'Roboto',
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark(
     primary: Color(0xFF5E6AD2),
@@ -176,7 +176,7 @@ final ThemeData dark = ThemeData(
 // ============================================================
 final ThemeData light = ThemeData(
   useMaterial3: true,
-  fontFamily: 'NotoSansCJK',
+  fontFamily: 'Roboto',
   brightness: Brightness.light,
   colorScheme: const ColorScheme.light(
     primary: Color(0xFF4C51BF),

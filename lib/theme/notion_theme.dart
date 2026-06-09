@@ -44,7 +44,7 @@ const Color _notionSeed = Color(0xFF37352F);
 // ============================================================
 final ThemeData dark = ThemeData(
   useMaterial3: true,
-  fontFamily: 'Robot',
+  fontFamily: 'Roboto',
   brightness: Brightness.dark,
   colorScheme: const ColorScheme.dark(
     primary: Color(0xFFD4D0C8),
@@ -53,24 +53,20 @@ final ThemeData dark = ThemeData(
     onPrimaryContainer: Color(0xFFE8E6E0),
     primaryFixed: Color(0xFFE8E6E0),
     primaryFixedDim: Color(0xFFC8C4BC),
-
     secondary: Color(0xFF8B8982),
     onSecondary: Color(0xFF191918),
     secondaryContainer: Color(0xFF2B2B28),
     onSecondaryContainer: Color(0xFFD4D0C8),
     secondaryFixed: Color(0xFFD4D0C8),
     secondaryFixedDim: Color(0xFFA8A59E),
-
     tertiary: Color(0xFF529CE0),
     onTertiary: Color(0xFFFFFFFF),
     tertiaryContainer: Color(0xFF0A2238),
     onTertiaryContainer: Color(0xFFB3D4FF),
-
     error: Color(0xFFE03E3E),
     onError: Color(0xFFFFFFFF),
     errorContainer: Color(0xFF3E0A0A),
     onErrorContainer: Color(0xFFFFDAD6),
-
     surface: Color(0xFF191918),
     onSurface: Color(0xFFE8E6E0),
     onSurfaceVariant: Color(0xFF8B8982),
@@ -79,7 +75,6 @@ final ThemeData dark = ThemeData(
     surfaceContainer: Color(0xFF20201F),
     surfaceContainerHigh: Color(0xFF282826),
     surfaceContainerHighest: Color(0xFF30302E),
-
     outline: Color(0xFF3A3A37),
     outlineVariant: Color(0xFF282826),
     shadow: Color(0xFF000000),
@@ -90,14 +85,12 @@ final ThemeData dark = ThemeData(
     inversePrimary: Color(0xFF37352F),
   ),
   scaffoldBackgroundColor: const Color(0xFF191918),
-
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFF20201F),
     foregroundColor: Color(0xFFE8E6E0),
     elevation: 0,
     centerTitle: false,
   ),
-
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFFD4D0C8),
@@ -116,7 +109,6 @@ final ThemeData dark = ThemeData(
       elevation: 0,
     ),
   ),
-
   inputDecorationTheme: const InputDecorationTheme(
     filled: true,
     fillColor: Color(0xFF20201F),
@@ -137,10 +129,8 @@ final ThemeData dark = ThemeData(
       borderSide: BorderSide(color: Color(0xFFE03E3E)),
     ),
   ),
-
   dividerColor: const Color(0xFF3A3A37),
   dividerTheme: const DividerThemeData(color: Color(0xFF3A3A37), thickness: 1),
-
   cardTheme: CardThemeData(
     color: const Color(0xFF20201F),
     elevation: 0,
@@ -149,7 +139,6 @@ final ThemeData dark = ThemeData(
       side: BorderSide.none,
     ),
   ),
-
   textTheme: const TextTheme(
     displayLarge: TextStyle(color: Color(0xFFE8E6E0)),
     displayMedium: TextStyle(color: Color(0xFFE8E6E0)),
@@ -167,13 +156,11 @@ final ThemeData dark = ThemeData(
     labelMedium: TextStyle(color: Color(0xFF8B8982)),
     labelSmall: TextStyle(color: Color(0xFF6B6A64)),
   ),
-
   tabBarTheme: const TabBarThemeData(
     labelColor: Color(0xFFD4D0C8),
     unselectedLabelColor: Color(0xFF8B8982),
     indicatorColor: Color(0xFFD4D0C8),
   ),
-
   switchTheme: SwitchThemeData(
     thumbColor: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.selected)) return const Color(0xFF529CE0);
@@ -200,24 +187,20 @@ final ThemeData light = ThemeData(
     onPrimaryContainer: Color(0xFF121211),
     primaryFixed: Color(0xFFEFEEE9),
     primaryFixedDim: Color(0xFFE3E2DD),
-
     secondary: Color(0xFF9B9A97),
     onSecondary: Color(0xFFFFFFFF),
     secondaryContainer: Color(0xFFEFEEE9),
     onSecondaryContainer: Color(0xFF20201F),
     secondaryFixed: Color(0xFFEFEEE9),
     secondaryFixedDim: Color(0xFFD3D1CB),
-
     tertiary: Color(0xFF2383E2),
     onTertiary: Color(0xFFFFFFFF),
     tertiaryContainer: Color(0xFFD4E8FF),
     onTertiaryContainer: Color(0xFF0A2238),
-
     error: Color(0xFFD3163C),
     onError: Color(0xFFFFFFFF),
     errorContainer: Color(0xFFFFDAD6),
     onErrorContainer: Color(0xFF3E0A0A),
-
     surface: Color(0xFFFFFFFF),
     onSurface: Color(0xFF37352F),
     onSurfaceVariant: Color(0xFF9B9A97),
@@ -226,7 +209,6 @@ final ThemeData light = ThemeData(
     surfaceContainer: Color(0xFFEFEEE9),
     surfaceContainerHigh: Color(0xFFE9E8E3),
     surfaceContainerHighest: Color(0xFFE3E2DD),
-
     outline: Color(0xFFD3D1CB),
     outlineVariant: Color(0xFFE3E2DD),
     shadow: Color(0xFF000000),
@@ -237,14 +219,12 @@ final ThemeData light = ThemeData(
     inversePrimary: Color(0xFFD4D0C8),
   ),
   scaffoldBackgroundColor: const Color(0xFFFFFFFF),
-
   appBarTheme: const AppBarTheme(
     backgroundColor: Color(0xFFFBFBFA),
     foregroundColor: Color(0xFF37352F),
     elevation: 0,
     centerTitle: false,
   ),
-
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFF37352F),
@@ -254,7 +234,6 @@ final ThemeData light = ThemeData(
       elevation: 0,
     ),
   ),
-
   inputDecorationTheme: const InputDecorationTheme(
     filled: true,
     fillColor: Color(0xFFF6F5F3),
@@ -275,10 +254,8 @@ final ThemeData light = ThemeData(
       borderSide: BorderSide(color: Color(0xFFD3163C)),
     ),
   ),
-
   dividerColor: const Color(0xFFD3D1CB),
   dividerTheme: const DividerThemeData(color: Color(0xFFD3D1CB), thickness: 1),
-
   cardTheme: CardThemeData(
     color: const Color(0xFFFBFBFA),
     elevation: 0,
@@ -287,7 +264,6 @@ final ThemeData light = ThemeData(
       side: BorderSide.none,
     ),
   ),
-
   textTheme: const TextTheme(
     displayLarge: TextStyle(color: Color(0xFF37352F)),
     displayMedium: TextStyle(color: Color(0xFF37352F)),
@@ -305,13 +281,11 @@ final ThemeData light = ThemeData(
     labelMedium: TextStyle(color: Color(0xFF9B9A97)),
     labelSmall: TextStyle(color: Color(0xFFB8B6B0)),
   ),
-
   tabBarTheme: const TabBarThemeData(
     labelColor: Color(0xFF37352F),
     unselectedLabelColor: Color(0xFF9B9A97),
     indicatorColor: Color(0xFF37352F),
   ),
-
   switchTheme: SwitchThemeData(
     thumbColor: WidgetStateProperty.resolveWith((states) {
       if (states.contains(WidgetState.selected)) return const Color(0xFF2383E2);
