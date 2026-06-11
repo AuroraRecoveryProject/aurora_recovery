@@ -1,203 +1,454 @@
-// video_player_widget.dart — 视频播放 Widget
+import 'dart:async';
+import 'dart:io';
 
+import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:global_repository/global_repository.dart';
+import 'package:video_player/video_player.dart' as official;
 
-import 'video_player_controller.dart';
+import 'core/video_player_backend.dart';
 
-/// 视频画面渲染
-class VideoPlayerView extends StatelessWidget {
-  final VideoPlayerController controller;
-  final BoxFit fit;
-
-  const VideoPlayerView({
-    super.key,
-    required this.controller,
-    this.fit = BoxFit.contain,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: controller,
-      builder: (context, _) {
-        final frame = controller.currentFrame;
-        if (frame == null) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-        return CustomPaint(
-          painter: _VideoPainter(frame, fit),
-          size: Size.infinite,
-        );
-      },
-    );
-  }
-}
-
-class _VideoPainter extends CustomPainter {
-  final dynamic image; // ui.Image
-  final BoxFit fit;
-
-  _VideoPainter(this.image, this.fit);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (image == null) return;
-
-    final src = Rect.fromLTWH(
-      0,
-      0,
-      image.width.toDouble(),
-      image.height.toDouble(),
-    );
-
-    final dst = _applyBoxFit(fit, src.size, size);
-
-    canvas.drawImageRect(image, src, dst, Paint());
-  }
-
-  Rect _applyBoxFit(BoxFit fit, Size srcSize, Size dstSize) {
-    final FittedSizes fitted = applyBoxFit(fit, srcSize, dstSize);
-    final double dx = (dstSize.width - fitted.destination.width) / 2;
-    final double dy = (dstSize.height - fitted.destination.height) / 2;
-    return Rect.fromLTWH(
-      dx,
-      dy,
-      fitted.destination.width,
-      fitted.destination.height,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_VideoPainter oldDelegate) => image != oldDelegate.image;
-}
-
-/// 包含控制栏的完整视频播放器
 class VideoPlayerWithControls extends StatefulWidget {
-  final String videoPath;
-
   const VideoPlayerWithControls({
     super.key,
+    required this.backend,
     required this.videoPath,
   });
 
+  final VideoPlayerBackend backend;
+  final String videoPath;
+
   @override
-  State<VideoPlayerWithControls> createState() =>
-      _VideoPlayerWithControlsState();
+  State<VideoPlayerWithControls> createState() => _VideoPlayerWithControlsState();
 }
 
 class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
-  late VideoPlayerController _controller;
-  bool _initialized = false;
-  double? _dragProgress;
+  late final official.VideoPlayerController _videoController;
+  ChewieController? _chewieController;
+  Object? _error;
+  Timer? _volumeOverlayTimer;
+  Timer? _infoOverlayTimer;
+  bool _showVolumeOverlay = false;
+  bool _showInfoOverlay = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController();
-    _init();
+    widget.backend.registerPlatform();
+    _videoController = official.VideoPlayerController.file(
+      File(widget.videoPath),
+    );
+    _initializePlayer();
   }
 
-  Future<void> _init() async {
-    final ok = await _controller.open(widget.videoPath);
-    if (ok && mounted) {
-      setState(() => _initialized = true);
-      _controller.play();
+  Future<void> _initializePlayer() async {
+    try {
+      final subtitles = await _loadSidecarSubtitles(widget.videoPath);
+      await _videoController.initialize();
+      if (!mounted) return;
+
+      _chewieController = ChewieController(
+        videoPlayerController: _videoController,
+        autoPlay: true,
+        looping: false,
+        subtitle: subtitles,
+        showSubtitles: subtitles.isNotEmpty,
+        subtitleBuilder: _buildSubtitle,
+        pauseOnBackgroundTap: true,
+        customControls: const CupertinoControls(
+          backgroundColor: Color.fromRGBO(41, 41, 41, 0.7),
+          iconColor: Color.fromARGB(255, 200, 200, 200),
+        ),
+        hideControlsTimer: const Duration(seconds: 3),
+      );
+
+      setState(() {});
+
+      final initialVolume = widget.backend.initialVolume;
+      if (initialVolume != null) {
+        await _videoController.setVolume(initialVolume);
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() => _error = error);
+      }
     }
+  }
+
+  Future<Subtitles> _loadSidecarSubtitles(String videoPath) async {
+    final subtitleFile = File(_defaultSubtitlePath(videoPath));
+    if (!await subtitleFile.exists()) {
+      return Subtitles(const []);
+    }
+
+    final fileContents = await subtitleFile.readAsString();
+    final captionFile = official.SubRipCaptionFile(fileContents);
+    final subtitles = captionFile.captions
+        .map(
+          (caption) => Subtitle(
+            index: caption.number,
+            start: caption.start,
+            end: caption.end,
+            text: caption.text,
+          ),
+        )
+        .toList(growable: false);
+    return Subtitles(subtitles);
+  }
+
+  String _defaultSubtitlePath(String videoPath) {
+    final extensionIndex = videoPath.lastIndexOf('.');
+    final slashIndex = videoPath.lastIndexOf('/');
+    if (extensionIndex > slashIndex) {
+      return '${videoPath.substring(0, extensionIndex)}.srt';
+    }
+    return '$videoPath.srt';
+  }
+
+  Widget _buildSubtitle(BuildContext context, dynamic subtitle) {
+    final text = subtitle.toString();
+    if (text.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 28),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: const Color(0xB8000000),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                height: 1.25,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _volumeOverlayTimer?.cancel();
+    _infoOverlayTimer?.cancel();
+    _chewieController?.dispose();
+    _videoController.dispose();
     super.dispose();
   }
 
-  String _formatDuration(int ms) {
-    final s = ms ~/ 1000;
-    final m = s ~/ 60;
-    final sec = s % 60;
-    return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
+  Future<void> _handleVolumeDrag(double deltaDy, double dragAreaHeight) async {
+    final height = dragAreaHeight <= 0 ? 1.0 : dragAreaHeight;
+    final deltaVolume = -deltaDy / height;
+    final nextVolume = (_videoController.value.volume + deltaVolume).clamp(
+      0.0,
+      1.0,
+    );
+    await _videoController.setVolume(nextVolume);
+    if (!mounted) return;
+    setState(() => _showVolumeOverlay = true);
+    _volumeOverlayTimer?.cancel();
+    _volumeOverlayTimer = Timer(const Duration(milliseconds: 900), () {
+      if (mounted) {
+        setState(() => _showVolumeOverlay = false);
+      }
+    });
+  }
+
+  void _showVideoInfo() {
+    if (!mounted) return;
+    setState(() => _showInfoOverlay = true);
+    _infoOverlayTimer?.cancel();
+    _infoOverlayTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => _showInfoOverlay = false);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialized) {
+    final error = _error;
+    if (error != null) {
+      return Center(
+        child: Text(
+          '${widget.backend.openErrorTitle}\n$error',
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    final chewieController = _chewieController;
+    if (chewieController == null || !_videoController.value.isInitialized) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Column(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: _controller.togglePlayPause,
-            child: VideoPlayerView(controller: _controller),
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => _showVideoInfo(),
+      child: Stack(
+        children: [
+          Chewie(controller: chewieController),
+          Positioned.fill(
+            child: Row(
+              children: [
+                const Spacer(),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onVerticalDragStart: (_) {
+                          setState(() => _showVolumeOverlay = true);
+                        },
+                        onVerticalDragUpdate: (details) {
+                          _handleVolumeDrag(
+                            details.delta.dy,
+                            constraints.maxHeight,
+                          );
+                        },
+                        onVerticalDragEnd: (_) {
+                          _volumeOverlayTimer?.cancel();
+                          _volumeOverlayTimer = Timer(
+                            const Duration(milliseconds: 900),
+                            () {
+                              if (mounted) {
+                                setState(() => _showVolumeOverlay = false);
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_showInfoOverlay)
+            _VideoInfoOverlay(
+              backend: widget.backend,
+              controller: _videoController,
+              videoPath: widget.videoPath,
+            ),
+          if (_showVolumeOverlay) _VolumeOverlay(volume: _videoController.value.volume),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoInfoOverlay extends StatelessWidget {
+  const _VideoInfoOverlay({
+    required this.backend,
+    required this.controller,
+    required this.videoPath,
+  });
+
+  final VideoPlayerBackend backend;
+  final official.VideoPlayerController controller;
+  final String videoPath;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final $ = context.$;
+    final info = backend.infoForPath(videoPath);
+
+    return Positioned(
+      left: $(6),
+      top: $(64),
+      child: IgnorePointer(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest.withOpacityExact(0.6),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: DefaultTextStyle(
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: $(12),
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    backend.infoTitle,
+                    style: TextStyle(
+                      fontSize: $(14),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text('File: ${_fileName(videoPath)}'),
+                  Text(
+                    'Duration: ${_formatDuration(controller.value.duration)}',
+                  ),
+                  Text(
+                    'Resolution: ${_formatResolution(controller.value.size)}',
+                  ),
+                  Text('FPS: ${_formatFps(info.fps)}'),
+                  Text('Bitrate: ${_formatBitrate(info.bitrateBps)}'),
+                  if (backend.showsExtendedInfo) ...[
+                    Text('Size: ${_formatBytes(info.fileSizeBytes)}'),
+                    Text('Video: ${_dashIfEmpty(info.videoCodec)}'),
+                    Text('Audio: ${_dashIfEmpty(info.audioCodec)}'),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
-        // 控制栏
-        ListenableBuilder(
-          listenable: _controller,
-          builder: (context, _) {
-            return Container(
-              color: Colors.black54,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
+      ),
+    );
+  }
+
+  static String _fileName(String path) {
+    final slashIndex = path.lastIndexOf('/');
+    if (slashIndex >= 0 && slashIndex < path.length - 1) {
+      return path.substring(slashIndex + 1);
+    }
+    return path;
+  }
+
+  static String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    if (hours > 0) {
+      return '$hours:${minutes.toString().padLeft(2, '0')}:'
+          '${seconds.toString().padLeft(2, '0')}';
+    }
+    return '${minutes.toString().padLeft(2, '0')}:'
+        '${seconds.toString().padLeft(2, '0')}';
+  }
+
+  static String _formatResolution(Size size) {
+    if (size == Size.zero) {
+      return '-';
+    }
+    return '${size.width.round()}x${size.height.round()}';
+  }
+
+  static String _formatFps(double fps) {
+    if (fps <= 0) {
+      return '-';
+    }
+    return fps.toStringAsFixed(fps == fps.roundToDouble() ? 0 : 2);
+  }
+
+  static String _formatBitrate(int bitrateBps) {
+    if (bitrateBps <= 0) {
+      return '-';
+    }
+    if (bitrateBps >= 1000 * 1000) {
+      return '${(bitrateBps / (1000 * 1000)).toStringAsFixed(2)} Mbps';
+    }
+    return '${(bitrateBps / 1000).toStringAsFixed(0)} kbps';
+  }
+
+  static String _formatBytes(int bytes) {
+    if (bytes <= 0) {
+      return '-';
+    }
+    const units = ['B', 'KB', 'MB', 'GB'];
+    var value = bytes.toDouble();
+    var unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+      value /= 1024;
+      unit++;
+    }
+    return '${value.toStringAsFixed(unit == 0 ? 0 : 1)} ${units[unit]}';
+  }
+
+  static String _dashIfEmpty(String? value) {
+    if (value == null || value.isEmpty) {
+      return '-';
+    }
+    return value;
+  }
+}
+
+class _VolumeOverlay extends StatelessWidget {
+  const _VolumeOverlay({required this.volume});
+
+  final double volume;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = (volume * 100).round().clamp(0, 100);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Positioned(
+      right: 28,
+      top: 0,
+      bottom: 0,
+      child: IgnorePointer(
+        child: Center(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withOpacityExact(0.4),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    icon: Icon(
-                      _controller.isPlaying
-                          ? Icons.pause
-                          : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                    onPressed: _controller.togglePlayPause,
-                  ),
-                  Text(
-                    _formatDuration(_controller.positionMs),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  Expanded(
-                    child: Slider(
-                      value: _dragProgress ??
-                          (_controller.durationMs > 0
-                              ? _controller.positionMs /
-                                  _controller.durationMs.toDouble()
-                              : 0),
-                      onChangeStart: (v) {
-                        setState(() => _dragProgress = v);
-                      },
-                      onChanged: (v) {
-                        setState(() => _dragProgress = v);
-                      },
-                      onChangeEnd: (v) {
-                        final target = (v * _controller.durationMs).round();
-                        setState(() => _dragProgress = null);
-                        _controller.seek(target);
-                      },
-                    ),
-                  ),
-                  Text(
-                    _formatDuration(_controller.durationMs),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.volume_up, color: Colors.white, size: 18),
+                  Icon(Icons.volume_up, color: colorScheme.onSurface, size: 22),
+                  const SizedBox(height: 10),
                   SizedBox(
-                    width: 120,
-                    child: Slider(
-                      value: _controller.volumePercent,
-                      min: 0,
-                      max: 100,
-                      divisions: 20,
-                      onChanged: _controller.setVolumePercent,
+                    width: 8,
+                    height: 150,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: colorScheme.onSurface.withOpacityExact(0.22),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: FractionallySizedBox(
+                          heightFactor: percent / 100,
+                          widthFactor: 1,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: colorScheme.onSurface,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '$percent',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-            );
-          },
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 }

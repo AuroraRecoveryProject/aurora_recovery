@@ -1,13 +1,15 @@
-// video_player_page.dart — 视频播放器页面
-
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
+import 'core/video_player_backend.dart';
 import 'video_player_widget.dart';
 
 class VideoPlayerPage extends StatefulWidget {
-  const VideoPlayerPage({super.key});
+  const VideoPlayerPage({
+    super.key,
+    required this.backend,
+  });
+
+  final VideoPlayerBackend backend;
 
   @override
   State<VideoPlayerPage> createState() => _VideoPlayerPageState();
@@ -16,7 +18,7 @@ class VideoPlayerPage extends StatefulWidget {
 class _VideoPlayerPageState extends State<VideoPlayerPage> {
   String? _videoPath;
   final _pathController = TextEditingController(
-    text: '/sdcard/4K.mkv',
+    text: '/sdcard/Project.Hail.Mary.2026.IMAX.2160p.iT.WEB-DL.English.DDP5.1.Atmos.H.265.mkv',
   );
 
   @override
@@ -27,25 +29,26 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final backend = widget.backend;
     if (_videoPath != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('视频播放'),
+          title: Text(backend.playbackTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => setState(() => _videoPath = null),
           ),
         ),
         body: VideoPlayerWithControls(
-          key: ValueKey(_videoPath),
+          key: ValueKey('${backend.name}:$_videoPath'),
+          backend: backend,
           videoPath: _videoPath!,
         ),
       );
     }
 
-    // 文件选择界面
     return Scaffold(
-      appBar: AppBar(title: const Text('视频播放器')),
+      appBar: AppBar(title: Text(backend.pickerTitle)),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -60,7 +63,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
               controller: _pathController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: '/tmp/flutter/test.mp4',
+                hintText: '/sdcard/video.mp4',
               ),
             ),
             const SizedBox(height: 16),
@@ -74,11 +77,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
               icon: const Icon(Icons.play_arrow),
               label: const Text('播放'),
             ),
-            const SizedBox(height: 32),
-            const Text(
-              '提示: 先用 adb push video.mp4 /tmp/flutter/ 将视频传到设备',
-              style: TextStyle(color: Colors.grey),
-            ),
+            if (backend.pickerHint.isNotEmpty) ...[
+              const SizedBox(height: 32),
+              Text(
+                backend.pickerHint,
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ],
           ],
         ),
       ),
