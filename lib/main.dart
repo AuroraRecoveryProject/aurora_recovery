@@ -90,7 +90,7 @@ class AuroraRecoveryApp extends StatefulWidget {
 }
 
 class _AuroraRecoveryAppState extends State<AuroraRecoveryApp> with WidgetsBindingObserver {
-  static const Duration _idleTimeout = Duration(seconds: kDebugMode ? 9999 : 10);
+  static const Duration _idleTimeout = Duration(seconds: kDebugMode ? 9999 : 999999);
   static const Duration _fadeDuration = Duration(milliseconds: 250);
   static const double _targetTouchSlop = 8.0;
 
@@ -403,6 +403,21 @@ class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> {
               colorFilter: svgColorFilter,
             ),
             Text(l10n.video_player),
+          ],
+        ),
+      ),
+      ArpDrawerItem(
+        value: textureVideoDemo,
+        groupValue: _selectedPage,
+        child: Row(
+          spacing: spacing,
+          children: [
+            spacer,
+            SvgPicture.asset(
+              Assets.videoIcon,
+              colorFilter: svgColorFilter,
+            ),
+            const Text('Texture Demo'),
           ],
         ),
       ),

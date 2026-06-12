@@ -470,7 +470,7 @@ packages:
     source: hosted
     version: "2.1.3"
   global_repository:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       path: "/Users/Laurie/Desktop/nightmare-space/global_repository"
       relative: false
@@ -965,18 +965,22 @@ packages:
     source: hosted
     version: "0.1.9"
   shader_graph:
-    dependency: "direct main"
+    dependency: transitive
     description:
-      path: "/Users/Laurie/Desktop/nightmare-space/AuroraRecoveryProject/shader_graph"
-      relative: false
-    source: path
+      path: "."
+      ref: b828871abe30748efca3c864ee60429f936c917b
+      resolved-ref: b828871abe30748efca3c864ee60429f936c917b
+      url: "https://github.com/nightmare-space/shader_graph"
+    source: git
     version: "0.1.3"
   shader_graph_example:
     dependency: "direct main"
     description:
-      path: "/Users/Laurie/Desktop/nightmare-space/AuroraRecoveryProject/shader_graph/example"
-      relative: false
-    source: path
+      path: example
+      ref: HEAD
+      resolved-ref: b828871abe30748efca3c864ee60429f936c917b
+      url: "https://github.com/nightmare-space/shader_graph"
+    source: git
     version: "1.0.0+1"
   shelf:
     dependency: transitive
