@@ -105,10 +105,36 @@ class _AuroraRecoveryAppState extends State<AuroraRecoveryApp> with WidgetsBindi
     );
   }
 
+  static OverlayState? get rootOverlay {
+    final root = WidgetsBinding.instance.rootElement;
+    if (root == null) return null;
+
+    OverlayState? overlay;
+
+    void visitor(Element element) {
+      if (element is StatefulElement && element.state is OverlayState) {
+        overlay = element.state as OverlayState;
+        return;
+      }
+      element.visitChildElements(visitor);
+    }
+
+    root.visitChildElements(visitor);
+    return overlay;
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // 需要让过程异步，这样 build 能先走，确保 rootOverlay 能找到 OverlayState
+    Future.delayed(Duration.zero, () {
+      rootOverlay?.insert(
+        OverlayEntry(builder: (context) {
+          return DeviceInfoOverlay();
+        }),
+      );
+    });
   }
 
   @override
@@ -204,96 +230,98 @@ class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> {
   static const terminal = 'terminal';
   static const setting = 'setting';
   static const videoPlayer = 'video_player';
+  static const textureVideoDemo = 'texture_video_demo';
   static const wlan = 'wlan';
   static const fileManager = 'file_manager';
   String _selectedPage = terminal;
 
-  final pages = {
-    demo: DemoPage(),
-    terminal: TerminalPage(),
-    setting: SettingPage(),
-    videoPlayer: VideoPlayerPage(),
-    wlan: WifiPage(),
-    fileManager: Builder(builder: (context) {
-      final colorScheme = Theme.of(context).colorScheme;
-      final l10n = L10n.of(context)!;
-      return FakeSafearea(
-        top: ResponsiveBreakpoints.of(context).isMobile,
-        child: FileManagerView(
-          controller: Get.find<FMController>(),
-          onFileTap: (file) {
-            bool text = [
-              'txt',
-              'rc',
-              'log',
-              'ini',
-              'conf',
-              'cfg',
-              'json',
-              'xml',
-              'prop',
-            ].any((ext) => file.path.endsWith(ext));
-            bool probeZom = ['zip', 'apk'].any((ext) => file.path.endsWith(ext));
-            if (probeZom) {
-              Get.dialog(
-                AlertDialog(
-                  title: Text('${l10n.flash} ${file.name}?'),
-                  content: Text(l10n.flash_romt_tips(file.name), style: TextStyle(color: colorScheme.error)),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Get.back(),
-                      child: Text(l10n.cancel),
+  Map<String, Widget> get pages => {
+        demo: DemoPage(),
+        terminal: TerminalPage(),
+        setting: SettingPage(),
+        videoPlayer: VideoPlayerPage(
+          backend: SettingInstance.videoPlayerBackend,
+        ),
+        textureVideoDemo: TextureVideoDemoPage(),
+        wlan: WifiPage(),
+        fileManager: Builder(builder: (context) {
+          final colorScheme = Theme.of(context).colorScheme;
+          final l10n = L10n.of(context)!;
+          return FakeSafearea(
+            child: FileManagerView(
+              controller: Get.find<FMController>(),
+              onFileTap: (file) {
+                bool text = [
+                  'txt',
+                  'rc',
+                  'log',
+                  'ini',
+                  'conf',
+                  'cfg',
+                  'json',
+                  'xml',
+                  'prop',
+                ].any((ext) => file.path.endsWith(ext));
+                bool probeZom = ['zip', 'apk'].any((ext) => file.path.endsWith(ext));
+                if (probeZom) {
+                  Get.dialog(
+                    AlertDialog(
+                      title: Text('${l10n.flash} ${file.name}?'),
+                      content: Text(l10n.flash_romt_tips(file.name), style: TextStyle(color: colorScheme.error)),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Get.back(),
+                          child: Text(l10n.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Get.back();
+                            Get.dialog(
+                              FlashRomDialog(filePath: file.path),
+                              barrierDismissible: false,
+                            );
+                          },
+                          child: Text(l10n.flash),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Get.back();
-                        Get.dialog(
-                          FlashRomDialog(filePath: file.path),
-                          barrierDismissible: false,
-                        );
-                      },
-                      child: Text(l10n.flash),
-                    ),
-                  ],
-                ),
-              );
-              return;
-            }
-            if (!text) return;
-            Get.to(
-              () => Container(
-                color: colorScheme.surface,
-                child: FakeSafearea(
-                  top: ResponsiveBreakpoints.of(context).isMobile,
-                  child: Scaffold(
-                    appBar: AppBar(
-                      title: Text(file.path),
-                      forceMaterialTransparency: true,
-                    ),
-                    body: FutureBuilder<String>(
-                      future: File(file.path).readAsString(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text('Error: ${snapshot.error}'));
-                        } else {
-                          return SingleChildScrollView(
-                            padding: const EdgeInsets.all(16),
-                            child: Text(snapshot.data ?? ''),
-                          );
-                        }
-                      },
+                  );
+                  return;
+                }
+                if (!text) return;
+                Get.to(
+                  () => Container(
+                    color: colorScheme.surface,
+                    child: FakeSafearea(
+                      child: Scaffold(
+                        appBar: AppBar(
+                          title: Text(file.path),
+                          forceMaterialTransparency: true,
+                        ),
+                        body: FutureBuilder<String>(
+                          future: File(file.path).readAsString(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(child: Text('Error: ${snapshot.error}'));
+                            } else {
+                              return SingleChildScrollView(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(snapshot.data ?? ''),
+                              );
+                            }
+                          },
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    })
-  };
+                );
+              },
+            ),
+          );
+        })
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -432,7 +460,6 @@ class _AuroraRecoveryRootState extends State<AuroraRecoveryRoot> {
               );
             },
           ),
-          DeviceInfoOverlay(),
         ],
       ),
     );
