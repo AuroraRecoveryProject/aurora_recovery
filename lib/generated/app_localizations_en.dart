@@ -93,4 +93,35 @@ class L10nEn extends L10n {
 
   @override
   String get language => 'Language';
+
+  @override
+  String current_render_mode(String mode) {
+    return 'Current Flutter render mode: $mode';
+  }
+
+  @override
+  String get video_render_mode => 'Video render mode';
+
+  @override
+  String get video_backend_ffi => 'FFI';
+
+  @override
+  String get video_backend_texture => 'Texture';
+
+  @override
+  String get video_backend_yuv_texture => 'YUV Texture';
+
+  @override
+  String get video_backend_ffi_texture_detail_title => 'FFI / Texture';
+
+  @override
+  String get video_backend_ffi_texture_detail =>
+      'Highest CPU usage. Recovery scheduling is limited, so the device heats up quickly.';
+
+  @override
+  String get video_backend_yuv_texture_detail_title => 'YUV Texture';
+
+  @override
+  String get video_backend_yuv_texture_detail =>
+      'Lower CPU pressure, but depends on Vulkan.';
 }

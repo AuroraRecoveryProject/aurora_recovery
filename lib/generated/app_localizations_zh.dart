@@ -93,4 +93,34 @@ class L10nZh extends L10n {
 
   @override
   String get language => '语言';
+
+  @override
+  String current_render_mode(String mode) {
+    return '当前Flutter渲染模式: $mode';
+  }
+
+  @override
+  String get video_render_mode => '视频渲染模式';
+
+  @override
+  String get video_backend_ffi => 'FFI';
+
+  @override
+  String get video_backend_texture => 'Texture';
+
+  @override
+  String get video_backend_yuv_texture => 'YUV Texture';
+
+  @override
+  String get video_backend_ffi_texture_detail_title => 'FFI / Texture';
+
+  @override
+  String get video_backend_ffi_texture_detail =>
+      'CPU 消耗最多，Recovery 下调度不理想，设备会很快发热。';
+
+  @override
+  String get video_backend_yuv_texture_detail_title => 'YUV Texture';
+
+  @override
+  String get video_backend_yuv_texture_detail => 'CPU 压力会好一些，但依赖 Vulkan。';
 }

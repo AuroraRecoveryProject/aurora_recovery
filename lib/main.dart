@@ -12,6 +12,7 @@ import 'package:file_manager/file_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
+import 'modules/texture_video_demo/texture_video_demo_page.dart';
 import 'modules/video_player/video_player_page.dart';
 import 'modules/flash_rom/flash_rom_dialog.dart';
 import 'modules/info_overlay/info_overlay.dart';

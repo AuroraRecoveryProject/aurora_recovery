@@ -264,6 +264,60 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// No description provided for @current_render_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Flutter render mode: {mode}'**
+  String current_render_mode(String mode);
+
+  /// No description provided for @video_render_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Video render mode'**
+  String get video_render_mode;
+
+  /// No description provided for @video_backend_ffi.
+  ///
+  /// In en, this message translates to:
+  /// **'FFI'**
+  String get video_backend_ffi;
+
+  /// No description provided for @video_backend_texture.
+  ///
+  /// In en, this message translates to:
+  /// **'Texture'**
+  String get video_backend_texture;
+
+  /// No description provided for @video_backend_yuv_texture.
+  ///
+  /// In en, this message translates to:
+  /// **'YUV Texture'**
+  String get video_backend_yuv_texture;
+
+  /// No description provided for @video_backend_ffi_texture_detail_title.
+  ///
+  /// In en, this message translates to:
+  /// **'FFI / Texture'**
+  String get video_backend_ffi_texture_detail_title;
+
+  /// No description provided for @video_backend_ffi_texture_detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest CPU usage. Recovery scheduling is limited, so the device heats up quickly.'**
+  String get video_backend_ffi_texture_detail;
+
+  /// No description provided for @video_backend_yuv_texture_detail_title.
+  ///
+  /// In en, this message translates to:
+  /// **'YUV Texture'**
+  String get video_backend_yuv_texture_detail_title;
+
+  /// No description provided for @video_backend_yuv_texture_detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower CPU pressure, but depends on Vulkan.'**
+  String get video_backend_yuv_texture_detail;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

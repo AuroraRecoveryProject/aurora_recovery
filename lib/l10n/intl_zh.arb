@@ -27,5 +27,21 @@
   "connecting": "正在连接",
   "connected": "已连接",
   "close": "关闭",
-  "language": "语言"
+  "language": "语言",
+  "current_render_mode": "当前Flutter渲染模式: {mode}",
+  "@current_render_mode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "video_render_mode": "视频渲染模式",
+  "video_backend_ffi": "FFI",
+  "video_backend_texture": "Texture",
+  "video_backend_yuv_texture": "YUV Texture",
+  "video_backend_ffi_texture_detail_title": "FFI / Texture",
+  "video_backend_ffi_texture_detail": "CPU 消耗最多，Recovery 下调度不理想，设备会很快发热。",
+  "video_backend_yuv_texture_detail_title": "YUV Texture",
+  "video_backend_yuv_texture_detail": "CPU 压力会好一些，但依赖 Vulkan。"
 }

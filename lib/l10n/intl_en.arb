@@ -27,5 +27,21 @@
   "connecting": "Connecting",
   "connected": "Connected",
   "close": "Close",
-  "language": "Language"
+  "language": "Language",
+  "current_render_mode": "Current Flutter render mode: {mode}",
+  "@current_render_mode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "video_render_mode": "Video render mode",
+  "video_backend_ffi": "FFI",
+  "video_backend_texture": "Texture",
+  "video_backend_yuv_texture": "YUV Texture",
+  "video_backend_ffi_texture_detail_title": "FFI / Texture",
+  "video_backend_ffi_texture_detail": "Highest CPU usage. Recovery scheduling is limited, so the device heats up quickly.",
+  "video_backend_yuv_texture_detail_title": "YUV Texture",
+  "video_backend_yuv_texture_detail": "Lower CPU pressure, but depends on Vulkan."
 }
