@@ -72,7 +72,6 @@ class _TerminalPageState extends State<TerminalPage> {
     return Material(
       color: defaultTheme.background,
       child: FakeSafearea(
-        top: ResponsiveBreakpoints.of(context).isMobile,
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Column(

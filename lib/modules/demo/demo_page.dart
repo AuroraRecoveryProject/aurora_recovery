@@ -1,5 +1,7 @@
+import 'package:aurora_recovery/common/assets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:global_repository/global_repository.dart';
@@ -43,11 +45,28 @@ class _DemoPageState extends State<DemoPage> {
     // RootPage 不需要这个是因为内部的 CupertinoSlidingSegmentedControl 上层有 CupertinoNavigationBar
     // RootPage not need this because the CupertinoSlidingSegmentedControl inside has a CupertinoNavigationBar above it
     final segmentedLabelColor = CupertinoDynamicColor.resolve(CupertinoColors.label, context);
-
+    final colorScheme = Theme.of(context).colorScheme;
+    bool isDesktop = ResponsiveBreakpoints.of(context).isDesktop;
+    Widget? leading;
+    if (!isDesktop) {
+      leading = IconButton(
+        onPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+        icon: SvgPicture.asset(
+          Assets.menuIcon,
+          width: $(24),
+          height: $(24),
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.onSurfaceVariant,
+            BlendMode.srcIn,
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: CupertinoDynamicColor.resolve(CupertinoColors.systemBackground, context),
       body: FakeSafearea(
-        top: ResponsiveBreakpoints.of(context).isMobile,
         child: CupertinoTheme(
           data: CupertinoThemeData(
             brightness: Theme.of(context).brightness,
@@ -61,15 +80,7 @@ class _DemoPageState extends State<DemoPage> {
                 spacing: $(8),
                 children: [
                   SizedBox(width: $(8)),
-                  IconButton(
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                    icon: Icon(
-                      Icons.menu,
-                      size: $(24),
-                    ),
-                  ),
+                  if (leading != null) leading,
                   Expanded(
                     child: Center(
                       child: SingleChildScrollView(

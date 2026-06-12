@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'package:aurora_recovery/common/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:global_repository/global_repository.dart';
 
 import 'keyboard_layouts.dart';
@@ -322,14 +324,21 @@ class TwrpKeyboardState extends State<TwrpKeyboard> {
         child: Stack(
           children: [
             Center(
-              child: Text(
-                key.label,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: key.isText ? $(20) : $(16),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              child: key.logicalKey == LogicalKeyboardKey.backspace
+                  ? SvgPicture.asset(
+                      Assets.deleteIcon,
+                      colorFilter: ColorFilter.mode(colorScheme.primary, BlendMode.srcIn),
+                      width: $(20),
+                      height: $(20),
+                    )
+                  : Text(
+                      key.label,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: key.isText ? $(20) : $(16),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
             ),
             if ((key.longPressText ?? '').isNotEmpty)
               Positioned(

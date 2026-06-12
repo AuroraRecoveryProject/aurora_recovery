@@ -23,7 +23,6 @@ class _ArpDrawerState<T> extends State<ArpDrawer<T>> {
     return Material(
       color: colorScheme.surface,
       child: FakeSafearea(
-        top: ResponsiveBreakpoints.of(context).isMobile,
         child: SizedBox(
           width: $(200),
           child: Center(

@@ -30,8 +30,7 @@ dependencies:
   flutter_svg: ^2.3.0
   file_manager:
     path: /Users/Laurie/Desktop/nightmare-space/file_manager_private
-  # file_manager:
-  #   path: /Users/Laurie/Desktop/nightmare-space/file_manager_private
+  global_repository: any
 
 dev_dependencies:
   flutter_test:
@@ -45,63 +44,32 @@ flutter:
   generate: true
   uses-material-design: true
 
-  fonts:
-    - family: Robot
-      fonts: 
-        - asset: assets/fonts/Roboto-Medium.ttf
+  # AURP do not need custom fonts
+  # fonts:
+  #   - family: Roboto
+  #     fonts: 
+  #       - asset: assets/fonts/Roboto-Medium.ttf
+  #   - family: DroidSansMono
+  #     fonts:
+  #       - asset: assets/fonts/DroidSansMono.ttf
 
   assets:
     - assets/twrp_keyboard_layouts.json
     - assets/
     - assets/icons/
-    - assets/textures/
     - assets/executable/
 
-  shaders:
-    - shaders/frame/IFrame Test.frag
-    - shaders/mouse/Pentagonal Conway's game BufferA.frag
-    - shaders/mouse/Pentagonal Conway's game.frag
-    # keyboard
-    - shaders/keyboard/Keyboard Debug Overlay.frag
-    - shaders/keyboard/Keyboard Test.frag
-    # game
-    - shaders/game_ported/Bricks Game.frag
-    - shaders/game_ported/Bricks Game BufferA.frag
-    - shaders/game_ported/Bricks Game BufferB.frag
-    - shaders/game_ported/Pacman Game.frag
-    - shaders/game_ported/Pacman Game BufferA.frag
-    - shaders/game_ported/Pacman Game BufferB.frag
-    # text
-    - shaders/text/Text Texture.frag
-    # multi-pass
-    - shaders/multi_pass/MacOS Monterey wallpaper.frag
-    - shaders/multi_pass/MacOS Monterey wallpaper BufferA.frag
-    - shaders/multi_pass/Static Vec4 Grid A.frag
-    - shaders/multi_pass/expansive reaction-diffusion BufferA.frag
-    - shaders/multi_pass/expansive reaction-diffusion BufferB.frag
-    - shaders/multi_pass/expansive reaction-diffusion BufferC.frag
-    - shaders/multi_pass/expansive reaction-diffusion BufferD.frag
-    - shaders/multi_pass/expansive reaction-diffusion.frag
-    # wrap & filter
-    - shaders/wrap/Wrap Debug.frag
-    - shaders/wrap/Black Hole ODE Geodesic Solver.frag
-    - shaders/wrap/Broken Time Gate.frag
-    - shaders/wrap/Goodbye Dream Clouds.frag
-    - shaders/wrap/Tissue.frag
-    - shaders/wrap/Transition Burning.frag
-    - shaders/wrap/Inverse Bilinear.frag
-    - shaders/touch_simple.frag
-
 ffigen:
-  name: AuroraBindings
-  output: lib/generated_bindings.dart
+  name: AuroraFfiBindings
+  output: lib/generated/aurora_ffi_bindings.dart
 
   headers:
     entry-points:
-      - native/tw_settings_ffi.h
-      - native/tw_power_ffi.h
-      - native/tw_display_ffi.h
-      - native/tw_install_ffi.h
+      - native/twrp_ffi/include/tw_settings_ffi.h
+      - native/twrp_ffi/include/tw_power_ffi.h
+      - native/twrp_ffi/include/tw_display_ffi.h
+      - native/twrp_ffi/include/tw_install_ffi.h
+      - native/video_ffi/twrp_video_player.h
 
   compiler-opts:
     - "-Inative"
@@ -114,11 +82,6 @@ dependency_overrides:
   xterm: ^4.0.0
   signale:
     git: /Users/Laurie/Desktop/nightmare-space/signale
-  shader_graph:
-    # git: https://github.com/nightmare-space/shader_graph
-    path: /Users/Laurie/Desktop/nightmare-space/AuroraRecoveryProject/shader_graph
-  shader_graph_example:
-    path: /Users/Laurie/Desktop/nightmare-space/AuroraRecoveryProject/shader_graph/example
   # flutter_svg: 2.3.0
   # 2.2.1 suport Flutter 3.29/Dart 3.7
   flutter_svg: 2.2.1
