@@ -23,7 +23,7 @@
 
 于是我将 Flutter 带到了 Android Recovery 环境中，开发 Aurora Recovery，和开发普通 Flutter App 没有任何差异，借助 flutter 的 custom devices，保存后 hot reload，以及 hot restart，都和普通开发完全一样
 
-## 如何实现？
+## 实现方案
 
 ### 1.为 flutter-embedded-linux 开发一个新的 DRM-DUMB backend
 
@@ -35,23 +35,131 @@
 
 ### 2.自定义 Flutter Engine
 
-Flutter Engine 也有大量的修改适配，来支持 Android Recovery 环境运行，仓库是开源的
+Flutter Engine 也有大量的修改适配，来支持 Android Recovery 环境运行，并只需要一份 Engine 就能同时支持 CPU 和 GPU 两种渲染后端，去除 OpenGL ES 相关的依赖，增加 Vulkan Impeller 的支持
 
-https://github.com/AuroraRecoveryProject/flutter/tree/3.29.3-recovery
+目前闭源，后续会提供类似 flutter-elinux 的工具，可以让大家也能开发这个 Recovery
 
-#### 2.1 CPU Only
+默认编译出 Android 两个 so 的依赖如下：
 
-使用以下参数构建
+```bash
+$READELF -d libflutter.so 
+  0x0000000000000001 (NEEDED)       Shared library: [libc.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libdl.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libm.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libandroid.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libEGL.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libGLESv2.so]
+  0x0000000000000001 (NEEDED)       Shared library: [liblog.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libjnigraphics.so]
+  0x000000000000000e (SONAME)       Library soname: [libflutter.so]
+$READELF -d libflutter_engine.so 
+  0x0000000000000001 (NEEDED)       Shared library: [libc.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libdl.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libm.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libandroid.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libEGL.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libGLESv2.so]
+  0x0000000000000001 (NEEDED)       Shared library: [liblog.so]
+  0x000000000000000e (SONAME)       Library soname: [libflutter_engine.so]
+```
 
-#### 2.2 Vulkan (Impeller)
+修改后的引擎依赖如下：
 
-使用以下参数构建
+```bash
+$READELF -d /Users/Laurie/Desktop/nightmare-space/AuroraRecoveryProject/arp_render/flutter-3.38.5/engine/src/out/android_debug_unopt_arm64_embedder_software/libflutter_engine.so  
+Dynamic section at offset 0x20954a8 contains 28 entries:
+  Tag                Type           Name/Value
+  0x0000000000000001 (NEEDED)       Shared library: [libc.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libdl.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libm.so]
+  0x0000000000000001 (NEEDED)       Shared library: [liblog.so]
+  0x000000000000000e (SONAME)       Library soname: [libflutter_engine.so]
+```
 
-### 3.输入事件适配
+虽然不依赖 libEGL.so 和 libGLESv2.so 了，但配合自定义的 embedders，依然可以让 Flutter 使用 Vulkan Impeller 后端
 
-从 minuitwrp 获取输入事件，转换为 Flutter 的 PointerEvent 注入到 Engine 中
+经过不少的尝试
 
-所以整个 ARP 的实现设计三个库，我目前仅想开源
+#### Vulkan：设备与显示分离
+
+```bash
+vkCreateInstance()        ← 不需要任何 display
+  → vkEnumeratePhysicalDevices()
+    → vkCreateDevice()    ← 只需内核驱动 (kgsl)
+      → vkAllocateMemory() / vkCreateBuffer() / ...
+```
+
+Vulkan 设计上将 **核心 GPU 操作**（instance、device、memory、command buffer）与 **窗口系统集成**（WSI: surface、swapchain）完全分离。在 Android HAL 层，`hwvulkan_device_t` 直接提供 `GetInstanceProcAddr`，绕过了所有 Framework 服务。
+
+#### OpenGL ES：EGL 是必经之路
+
+```bash
+eglGetDisplay()           ← 必须有 display（连接 SurfaceFlinger）
+  → eglInitialize()       ← 枚举 GPU、加载配置（依赖 HWComposer）
+    → eglCreateContext()  ← 所有 GL 调用必须在 context 内
+      → glBindBuffer() / glDrawArrays() / ...
+```
+
+OpenGL/ES 的所有操作都必须在 **EGL context** 内执行，而 EGL context 需要 EGL display。Adreno 闭源 `libEGL_adreno.so` 的 `eglInitialize()` 内部通过 `libgui` 连接 SurfaceFlinger 枚举显示设备 — **这在 Recovery 中永远不可能成功**。
+
+#### 对比总结
+
+| | Vulkan | OpenGL ES |
+| --- | -------- | ---------- |
+| 需要 display 才能初始化？ | ❌ 不需要 | ✅ **必须** |
+| Android HAL 直接入口？ | ✅ `hwvulkan_device_t` | ❌ 无对应 HAL |
+| 依赖 SurfaceFlinger？ | ❌ | ✅ EGL 内部硬编码 |
+| 离屏渲染是一等公民？ | ✅ | ❌ 需先有 context |
+| Recovery 可用性 | ✅ **可用** | ❌ **不可用** |
+
+#### 构建系统支持按条件裁剪 GL、Vulkan 和 Android SDK 依赖
+
+**问题：**
+
+Recovery 模式下的 engine 目标产物是 arm64 架构的 so，运行环境不提供完整的 GPU 图形栈，原始构建系统在 arm64 交叉编译时会强制链接 EGL、GLESv2 等库；这些库在 Recovery 运行时环境中不存在，so 加载时会因 undefined symbol 直接崩溃
+
+**方案：**
+
+将 Android 侧 BUILD.gn 改为条件编译，允许按构建开关裁剪 GL、Vulkan 以及部分 Android SDK 相关依赖
+
+通过把 GL/Vulkan 设为可裁剪开关，消除了交叉编译阶段的强制 GPU 符号引用，也打通了 software-only engine 的独立编译与正确加载链路
+
+#### Android 平台侧的 GL/Vulkan 路径增加编译期宏保护
+
+**问题：**
+
+仅修改 BUILD.gn 只能在链接层面移除依赖，无法保证源代码本身不再引用这些后端，当 GL/Vulkan 被完全裁掉时，未受保护的头文件引用、类型声明和 switch case 仍会导致编译失败
+
+
+**方案：**
+
+所以为 Android 平台代码中的 GL/Vulkan include、类型引用和分支逻辑补充编译期宏保护，增加宏保护后，纯 CPU software engine 不仅能在链接阶段裁掉 GPU 依赖，也能在源码层面完整编译通过
+
+#### Embedder 补齐 Vulkan Impeller Surface 构造入口
+
+**问题：**
+
+Embedder 端虽然具备 Vulkan Impeller 的调用路径，但平台视图对象无法按预期完成构造，导致整条渲染链路无法打通，embedder.cc 中已经存在 Vulkan Impeller 的接线逻辑，但当前版本的 PlatformViewEmbedder 缺少对应构造函数重载
+
+**方案：**
+
+为 PlatformViewEmbedder 增加 Vulkan Impeller 对应的构造函数入口，新增构造入口后，embedder.cc 中已有的 Vulkan Impeller 逻辑可以正确落到 PlatformViewEmbedder，实现完整的 Vulkan Impeller 接入闭环
+
+#### Vulkan 后端修复 Adreno OOM：补齐 command pool 和 descriptor pool 复位
+
+**问题：**
+
+Adreno 驱动对 command pool 和 descriptor pool 的持续增长更敏感，在高频分配但不复位的情况下更容易触发 OOM，反复分配 command buffer 和 descriptor set 而不复位 pool，会导致已完成帧对应的分配长期滞留，最终引发内存持续增长和 OOM，**在 Android 原生的渲染路线中不会有这个问题**
+
+**方案：**
+
+为 Vulkan 后端补充 command pool 和 descriptor pool 的显式复位机制，在每帧 present 完成后显式复位 command pool 和 descriptor pool，及时回收本帧已完成的临时分配，避免 Vulkan 资源池无限增长，降低 Adreno 设备在长时间运行下触发 OOM 的风险
+
+## 功能
+
+- 在 CPU/GPU 模式都有较高刷新率
+- 响应式的 UI
+- 更完整的终端
 
 ### 4.fort Cli
 
@@ -249,7 +357,7 @@ forc launch --app-name aurora_recovery-release --release
 flutter assemble -dTargetPlatform=android-arm64 \
 -dBuildMode=release \
 -dTargetFile=lib/main.dart \
---local-engine-src-path=../flutter-3.29-new/engine/src \
+--local-engine-src-path=$TWRP_FLUTTER_SDK/engine/src \
 --local-engine=android_release_arm64_embedder_software \
 --local-engine-host=host_debug_unopt_arm64 \
 -o build \
@@ -259,9 +367,19 @@ android_aot_bundle_release_android-arm64
 ## 运行
 
 ```bash
-flutter run -d rec --debug \                     
+device=oneplus15-rec
+device=opus-pad2pro-rec 
+
+flutter run -d $device --debug \
   -t lib/main.dart \
-  --local-engine-src-path=/Users/Laurie/Desktop/nightmare-space/Android_Recovery/Flutter_On_Recovery/flutter-3.29-new/engine/src \
+  --local-engine-src-path=$TWRP_FLUTTER_SDK/engine/src \
   --local-engine=android_debug_unopt_arm64_embedder_software \
-  --local-engine-host=host_debug_unopt_arm64 -v
+  --local-engine-host=host_debug_unopt_arm64 \
+  -v
 ```
+
+adb shell cat /tmp/twrp_child.log > ./twrp_child.log
+adb shell cat /data/local/tmp/magisk_install.log > ./magisk_install.log
+adb shell dmesg -T | tail -200 > ./dmesg.log
+
+

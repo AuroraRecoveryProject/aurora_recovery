@@ -1,8 +1,8 @@
 # Flutter Recovery 调 FFI 刷入 Magisk 崩溃问题调查记录
 
-> 第二版。结论部分（SIGPIPE 链是真因、unshare + SIG_IGN 双修复均生效）已最终确定；中间分析过程保留了"错误猜测—被证伪—修正"的完整轨迹，便于复盘。
+> 结论部分（SIGPIPE 链是真因、unshare + SIG_IGN 双修复均生效）已最终确定；中间分析过程保留了"错误猜测—被证伪—修正"的完整轨迹，便于复盘。
 >
-> 第二版相对第一版的主要修订：第一版曾把 exec 失败原因定为"`/system/bin/cat` 符号链接循环导致 ELOOP"。后续 on-device 实地 dump（见 3.11）证伪了这一点 —— erofs 真分区里 `/system/bin/cat -> toybox` 是干净的相对软链、`toybox` 是普通 ELF，并不构成自指环。同时 `signal(SIGPIPE, SIG_IGN)` 单独验证（见 3.12）确认了 SIGPIPE 链才是真因。因此 4.1 因果链里 exec 失败的**具体 errno** 被降级为"未充分定位"，但整条 SIGPIPE 链与两个修复方案的有效性都不受影响。
+> 目前相对前期的主要修订：前期曾把 exec 失败原因定为"`/system/bin/cat` 符号链接循环导致 ELOOP"。后续 on-device 实地 dump（见 3.11）证伪了这一点 —— erofs 真分区里 `/system/bin/cat -> toybox` 是干净的相对软链、`toybox` 是普通 ELF，并不构成自指环。同时 `signal(SIGPIPE, SIG_IGN)` 单独验证（见 3.12）确认了 SIGPIPE 链才是真因。因此 4.1 因果链里 exec 失败的**具体 errno** 被降级为"未充分定位"，但整条 SIGPIPE 链与两个修复方案的有效性都不受影响。
 
 ---
 
@@ -159,20 +159,7 @@ if (pid == 0) {
 
 在 [assets/boot_patch.sh](Magisk/Magisk/assets/boot_patch.sh) 关键节点插 13 处 `ui_print "DBG: ..."; sleep 2`，再在 [assets/util_functions.sh](Magisk/Magisk/assets/util_functions.sh) 的 `recovery_actions` 和 `mount_partitions` 里类似插桩。
 
-重打包：
-
-```sh
-cd Magisk
-cp Magisk-v30.7.apk Magisk-v30.7-dbg.apk
-cd Magisk
-zip ../Magisk-v30.7-dbg.apk assets/boot_patch.sh assets/util_functions.sh
-unzip -p ../Magisk-v30.7-dbg.apk assets/boot_patch.sh    | grep -c 'DBG:'
-unzip -p ../Magisk-v30.7-dbg.apk assets/util_functions.sh | grep -c 'DBG:'
-cd ..
-adb push Magisk-v30.7-dbg.apk /tmp/
-```
-
-启 B 组复测：
+重打包启 B 组复测：
 
 ```sh
 adb shell touch /tmp/tw_ffi_no_unshare
@@ -267,7 +254,7 @@ execve("/sbin/cat",        ["cat", "/proc/stat"]) = -1 ENOENT
 execve("/system/bin/cat",  ["cat", "/proc/stat"]) = -1 ELOOP (Too many symbolic links encountered)
 ```
 
-第一版基于这条 strace 行把 root cause 写成"erofs 里 `/system/bin/cat` 符号链接循环"。该归因后被 3.11 节的 on-device dump **证伪**：真分区里 `/system/bin/cat -> toybox` 是干净的相对软链，`toybox` 是普通 ELF，并不构成自指环。
+前期基于这条 strace 行把 root cause 写成"erofs 里 `/system/bin/cat` 符号链接循环"。该归因后被 3.11 节的 on-device dump **证伪**：真分区里 `/system/bin/cat -> toybox` 是干净的相对软链，`toybox` 是普通 ELF，并不构成自指环。
 
 更保守地说：只能确认 helper 的 `execve("/system/bin/cat", ...)` 在这个时刻**失败**了。具体 errno 是否真为 ELOOP、抑或是 mount propagation 中间态下的某个瞬态错误、抑或 strace 显示的是别处的 ELOOP 被我误归到这一行，目前**没有充分证据定论**。对本问题而言不重要 —— 后续步骤都不依赖具体 errno。
 
@@ -377,7 +364,7 @@ signal(SIGPIPE, SIG_IGN);
 | 猜测 | 实际是否成立 | 原因 |
 |---|---|---|
 | `umount /system` 让 mmap 失效 | 否 | `/system` 不是 mount point，`umount` 是 no-op |
-| 依赖 `/vendor` GPU 库 | 否 | Flutter 是纯 CPU 渲染 |
+| 依赖 `/vendor` GPU 库 | 否 | Flutter 有纯 CPU 渲染模式 |
 | `/system/lib64/*.so` mmap 失效 → SIGBUS | 否 | Linux 下 mount over 不会让旧 mmap 失效 |
 | 多线程访问 path 失败 → SIGSEGV | 半对 | path 解析确实失败，但失败发生在 exec 而不是 mmap，且终结点是 SIGPIPE |
 
