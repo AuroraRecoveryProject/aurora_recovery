@@ -40,7 +40,7 @@ import 'theme/linear_theme.dart';
 // import 'theme/vercel_theme.dart';
 // import 'theme/warp_theme.dart';
 
-import 'wifi/wifi_page.dart';
+import 'modules/wifi/wifi_page.dart';
 import 'common/assets.dart';
 import 'common/l10n.dart';
 import 'drawer.dart';

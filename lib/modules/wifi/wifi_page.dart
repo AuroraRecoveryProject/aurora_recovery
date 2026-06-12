@@ -1,3 +1,4 @@
+import 'package:aurora_recovery/common/assets.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:global_repository/global_repository.dart';
@@ -22,29 +23,30 @@ class _WifiPageState extends State<WifiPage> {
   @override
   Widget build(BuildContext context) {
     bool isDesktop = ResponsiveBreakpoints.of(context).isDesktop;
+    Widget? leading;
+    if (!isDesktop) {
+      leading = IconButton(
+        onPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+        icon: SvgPicture.asset(
+          Assets.menuIcon,
+          width: $(24),
+          height: $(24),
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.onSurfaceVariant,
+            BlendMode.srcIn,
+          ),
+        ),
+      );
+    }
     return FakeSafearea(
-      top: ResponsiveBreakpoints.of(context).isMobile,
       child: Scaffold(
         appBar: AppBar(
           title: Text("WIFI ${l10n.setting}"),
           leadingWidth: $(48 + 16),
           forceMaterialTransparency: true,
-          leading: isDesktop
-              ? null
-              : IconButton(
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                  icon: SvgPicture.asset(
-                    'assets/icons/menu.svg',
-                    width: $(24),
-                    height: $(24),
-                    colorFilter: ColorFilter.mode(
-                      Theme.of(context).colorScheme.onSurfaceVariant,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
+          leading: leading,
         ),
         body: GetBuilder(
           init: controller,
