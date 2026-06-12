@@ -326,6 +326,554 @@ class AuroraFfiBindings {
           'tw_install_reset_session');
   late final _tw_install_reset_session =
       _tw_install_reset_sessionPtr.asFunction<int Function()>();
+
+  ffi.Pointer<TwrpVideoPlayer> tvp_create(
+    ffi.Pointer<ffi.Char> path,
+  ) {
+    return _tvp_create(
+      path,
+    );
+  }
+
+  late final _tvp_createPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<TwrpVideoPlayer> Function(
+              ffi.Pointer<ffi.Char>)>>('tvp_create');
+  late final _tvp_create = _tvp_createPtr.asFunction<
+      ffi.Pointer<TwrpVideoPlayer> Function(ffi.Pointer<ffi.Char>)>();
+
+  void tvp_destroy(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_destroy(
+      player,
+    );
+  }
+
+  late final _tvp_destroyPtr = _lookup<
+          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_destroy');
+  late final _tvp_destroy =
+      _tvp_destroyPtr.asFunction<void Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_play(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_play(
+      player,
+    );
+  }
+
+  late final _tvp_playPtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_play');
+  late final _tvp_play =
+      _tvp_playPtr.asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_pause(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_pause(
+      player,
+    );
+  }
+
+  late final _tvp_pausePtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_pause');
+  late final _tvp_pause =
+      _tvp_pausePtr.asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_seek(
+    ffi.Pointer<TwrpVideoPlayer> player,
+    int position_ms,
+  ) {
+    return _tvp_seek(
+      player,
+      position_ms,
+    );
+  }
+
+  late final _tvp_seekPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(
+              ffi.Pointer<TwrpVideoPlayer>, ffi.Int64)>>('tvp_seek');
+  late final _tvp_seek = _tvp_seekPtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>, int)>();
+
+  int tvp_set_aw_volume(
+    ffi.Pointer<TwrpVideoPlayer> player,
+    int aw_volume,
+  ) {
+    return _tvp_set_aw_volume(
+      player,
+      aw_volume,
+    );
+  }
+
+  late final _tvp_set_aw_volumePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(
+              ffi.Pointer<TwrpVideoPlayer>, ffi.Int)>>('tvp_set_aw_volume');
+  late final _tvp_set_aw_volume = _tvp_set_aw_volumePtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>, int)>();
+
+  int tvp_get_width(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_width(
+      player,
+    );
+  }
+
+  late final _tvp_get_widthPtr = _lookup<
+          ffi.NativeFunction<ffi.Int32 Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_get_width');
+  late final _tvp_get_width = _tvp_get_widthPtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_get_height(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_height(
+      player,
+    );
+  }
+
+  late final _tvp_get_heightPtr = _lookup<
+          ffi.NativeFunction<ffi.Int32 Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_get_height');
+  late final _tvp_get_height = _tvp_get_heightPtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_get_duration_ms(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_duration_ms(
+      player,
+    );
+  }
+
+  late final _tvp_get_duration_msPtr = _lookup<
+          ffi.NativeFunction<ffi.Int64 Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_get_duration_ms');
+  late final _tvp_get_duration_ms = _tvp_get_duration_msPtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_get_position_ms(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_position_ms(
+      player,
+    );
+  }
+
+  late final _tvp_get_position_msPtr = _lookup<
+          ffi.NativeFunction<ffi.Int64 Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_get_position_ms');
+  late final _tvp_get_position_ms = _tvp_get_position_msPtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_get_file_size_bytes(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_file_size_bytes(
+      player,
+    );
+  }
+
+  late final _tvp_get_file_size_bytesPtr = _lookup<
+          ffi.NativeFunction<ffi.Int64 Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_get_file_size_bytes');
+  late final _tvp_get_file_size_bytes = _tvp_get_file_size_bytesPtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_get_bitrate_bps(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_bitrate_bps(
+      player,
+    );
+  }
+
+  late final _tvp_get_bitrate_bpsPtr = _lookup<
+          ffi.NativeFunction<ffi.Int64 Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_get_bitrate_bps');
+  late final _tvp_get_bitrate_bps = _tvp_get_bitrate_bpsPtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_is_playing(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_is_playing(
+      player,
+    );
+  }
+
+  late final _tvp_is_playingPtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_is_playing');
+  late final _tvp_is_playing = _tvp_is_playingPtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  int tvp_has_new_frame(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_has_new_frame(
+      player,
+    );
+  }
+
+  late final _tvp_has_new_framePtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<TwrpVideoPlayer>)>>(
+      'tvp_has_new_frame');
+  late final _tvp_has_new_frame = _tvp_has_new_framePtr
+      .asFunction<int Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  ffi.Pointer<ffi.Uint8> tvp_get_frame(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_frame(
+      player,
+    );
+  }
+
+  late final _tvp_get_framePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Uint8> Function(
+              ffi.Pointer<TwrpVideoPlayer>)>>('tvp_get_frame');
+  late final _tvp_get_frame = _tvp_get_framePtr.asFunction<
+      ffi.Pointer<ffi.Uint8> Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  double tvp_get_fps(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_fps(
+      player,
+    );
+  }
+
+  late final _tvp_get_fpsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Double Function(ffi.Pointer<TwrpVideoPlayer>)>>('tvp_get_fps');
+  late final _tvp_get_fps = _tvp_get_fpsPtr
+      .asFunction<double Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  ffi.Pointer<ffi.Char> tvp_get_video_codec(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_video_codec(
+      player,
+    );
+  }
+
+  late final _tvp_get_video_codecPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<TwrpVideoPlayer>)>>('tvp_get_video_codec');
+  late final _tvp_get_video_codec = _tvp_get_video_codecPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  ffi.Pointer<ffi.Char> tvp_get_audio_codec(
+    ffi.Pointer<TwrpVideoPlayer> player,
+  ) {
+    return _tvp_get_audio_codec(
+      player,
+    );
+  }
+
+  late final _tvp_get_audio_codecPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<TwrpVideoPlayer>)>>('tvp_get_audio_codec');
+  late final _tvp_get_audio_codec = _tvp_get_audio_codecPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<TwrpVideoPlayer>)>();
+
+  ffi.Pointer<ffi.Char> tvp_last_error() {
+    return _tvp_last_error();
+  }
+
+  late final _tvp_last_errorPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'tvp_last_error');
+  late final _tvp_last_error =
+      _tvp_last_errorPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
+
+  ffi.Pointer<VideoPlayerHandle> vp_create(
+    ffi.Pointer<ffi.Char> path,
+  ) {
+    return _vp_create(
+      path,
+    );
+  }
+
+  late final _vp_createPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<VideoPlayerHandle> Function(
+              ffi.Pointer<ffi.Char>)>>('vp_create');
+  late final _vp_create = _vp_createPtr.asFunction<
+      ffi.Pointer<VideoPlayerHandle> Function(ffi.Pointer<ffi.Char>)>();
+
+  void vp_destroy(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_destroy(
+      player,
+    );
+  }
+
+  late final _vp_destroyPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<VideoPlayerHandle>)>>('vp_destroy');
+  late final _vp_destroy = _vp_destroyPtr
+      .asFunction<void Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_play(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_play(
+      player,
+    );
+  }
+
+  late final _vp_playPtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<VideoPlayerHandle>)>>(
+      'vp_play');
+  late final _vp_play =
+      _vp_playPtr.asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_pause(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_pause(
+      player,
+    );
+  }
+
+  late final _vp_pausePtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<VideoPlayerHandle>)>>(
+      'vp_pause');
+  late final _vp_pause =
+      _vp_pausePtr.asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_seek(
+    ffi.Pointer<VideoPlayerHandle> player,
+    int position_ms,
+  ) {
+    return _vp_seek(
+      player,
+      position_ms,
+    );
+  }
+
+  late final _vp_seekPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(
+              ffi.Pointer<VideoPlayerHandle>, ffi.Int64)>>('vp_seek');
+  late final _vp_seek = _vp_seekPtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>, int)>();
+
+  int vp_set_aw_volume(
+    ffi.Pointer<VideoPlayerHandle> player,
+    int aw_volume,
+  ) {
+    return _vp_set_aw_volume(
+      player,
+      aw_volume,
+    );
+  }
+
+  late final _vp_set_aw_volumePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(
+              ffi.Pointer<VideoPlayerHandle>, ffi.Int)>>('vp_set_aw_volume');
+  late final _vp_set_aw_volume = _vp_set_aw_volumePtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>, int)>();
+
+  int vp_get_width(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_width(
+      player,
+    );
+  }
+
+  late final _vp_get_widthPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<VideoPlayerHandle>)>>('vp_get_width');
+  late final _vp_get_width = _vp_get_widthPtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_get_height(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_height(
+      player,
+    );
+  }
+
+  late final _vp_get_heightPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<VideoPlayerHandle>)>>('vp_get_height');
+  late final _vp_get_height = _vp_get_heightPtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_get_duration_ms(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_duration_ms(
+      player,
+    );
+  }
+
+  late final _vp_get_duration_msPtr = _lookup<
+          ffi
+          .NativeFunction<ffi.Int64 Function(ffi.Pointer<VideoPlayerHandle>)>>(
+      'vp_get_duration_ms');
+  late final _vp_get_duration_ms = _vp_get_duration_msPtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_get_position_ms(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_position_ms(
+      player,
+    );
+  }
+
+  late final _vp_get_position_msPtr = _lookup<
+          ffi
+          .NativeFunction<ffi.Int64 Function(ffi.Pointer<VideoPlayerHandle>)>>(
+      'vp_get_position_ms');
+  late final _vp_get_position_ms = _vp_get_position_msPtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_get_file_size_bytes(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_file_size_bytes(
+      player,
+    );
+  }
+
+  late final _vp_get_file_size_bytesPtr = _lookup<
+          ffi
+          .NativeFunction<ffi.Int64 Function(ffi.Pointer<VideoPlayerHandle>)>>(
+      'vp_get_file_size_bytes');
+  late final _vp_get_file_size_bytes = _vp_get_file_size_bytesPtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_get_bitrate_bps(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_bitrate_bps(
+      player,
+    );
+  }
+
+  late final _vp_get_bitrate_bpsPtr = _lookup<
+          ffi
+          .NativeFunction<ffi.Int64 Function(ffi.Pointer<VideoPlayerHandle>)>>(
+      'vp_get_bitrate_bps');
+  late final _vp_get_bitrate_bps = _vp_get_bitrate_bpsPtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_is_playing(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_is_playing(
+      player,
+    );
+  }
+
+  late final _vp_is_playingPtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<VideoPlayerHandle>)>>(
+      'vp_is_playing');
+  late final _vp_is_playing = _vp_is_playingPtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  int vp_has_new_frame(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_has_new_frame(
+      player,
+    );
+  }
+
+  late final _vp_has_new_framePtr = _lookup<
+          ffi.NativeFunction<ffi.Int Function(ffi.Pointer<VideoPlayerHandle>)>>(
+      'vp_has_new_frame');
+  late final _vp_has_new_frame = _vp_has_new_framePtr
+      .asFunction<int Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  ffi.Pointer<ffi.Uint8> vp_get_frame(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_frame(
+      player,
+    );
+  }
+
+  late final _vp_get_framePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Uint8> Function(
+              ffi.Pointer<VideoPlayerHandle>)>>('vp_get_frame');
+  late final _vp_get_frame = _vp_get_framePtr.asFunction<
+      ffi.Pointer<ffi.Uint8> Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  double vp_get_fps(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_fps(
+      player,
+    );
+  }
+
+  late final _vp_get_fpsPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Double Function(ffi.Pointer<VideoPlayerHandle>)>>('vp_get_fps');
+  late final _vp_get_fps = _vp_get_fpsPtr
+      .asFunction<double Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  ffi.Pointer<ffi.Char> vp_get_video_codec(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_video_codec(
+      player,
+    );
+  }
+
+  late final _vp_get_video_codecPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<VideoPlayerHandle>)>>('vp_get_video_codec');
+  late final _vp_get_video_codec = _vp_get_video_codecPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  ffi.Pointer<ffi.Char> vp_get_audio_codec(
+    ffi.Pointer<VideoPlayerHandle> player,
+  ) {
+    return _vp_get_audio_codec(
+      player,
+    );
+  }
+
+  late final _vp_get_audio_codecPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<VideoPlayerHandle>)>>('vp_get_audio_codec');
+  late final _vp_get_audio_codec = _vp_get_audio_codecPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(ffi.Pointer<VideoPlayerHandle>)>();
+
+  ffi.Pointer<ffi.Char> vp_last_error() {
+    return _vp_last_error();
+  }
+
+  late final _vp_last_errorPtr =
+      _lookup<ffi.NativeFunction<ffi.Pointer<ffi.Char> Function()>>(
+          'vp_last_error');
+  late final _vp_last_error =
+      _vp_last_errorPtr.asFunction<ffi.Pointer<ffi.Char> Function()>();
 }
 
 final class __mbstate_t extends ffi.Union {
@@ -442,6 +990,10 @@ final class tw_battery_info extends ffi.Struct {
 }
 
 typedef tw_battery_info_t = tw_battery_info;
+
+final class TwrpVideoPlayer extends ffi.Opaque {}
+
+typedef VideoPlayerHandle = TwrpVideoPlayer;
 
 const int TW_INSTALL_STATE_IDLE = 0;
 

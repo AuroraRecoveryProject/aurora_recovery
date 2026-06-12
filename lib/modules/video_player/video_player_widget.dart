@@ -26,10 +26,7 @@ class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
   late final official.VideoPlayerController _videoController;
   ChewieController? _chewieController;
   Object? _error;
-  Timer? _volumeOverlayTimer;
-  Timer? _infoOverlayTimer;
-  bool _showVolumeOverlay = false;
-  bool _showInfoOverlay = false;
+  Subtitles _subtitles = Subtitles(const []);
 
   @override
   void initState() {
@@ -43,24 +40,11 @@ class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
 
   Future<void> _initializePlayer() async {
     try {
-      final subtitles = await _loadSidecarSubtitles(widget.videoPath);
+      _subtitles = await _loadSidecarSubtitles(widget.videoPath);
       await _videoController.initialize();
       if (!mounted) return;
 
-      _chewieController = ChewieController(
-        videoPlayerController: _videoController,
-        autoPlay: true,
-        looping: false,
-        subtitle: subtitles,
-        showSubtitles: subtitles.isNotEmpty,
-        subtitleBuilder: _buildSubtitle,
-        pauseOnBackgroundTap: true,
-        customControls: const CupertinoControls(
-          backgroundColor: Color.fromRGBO(41, 41, 41, 0.7),
-          iconColor: Color.fromARGB(255, 200, 200, 200),
-        ),
-        hideControlsTimer: const Duration(seconds: 3),
-      );
+      _chewieController = _createChewieController(autoPlay: true);
 
       setState(() {});
 
@@ -139,21 +123,165 @@ class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
 
   @override
   void dispose() {
-    _volumeOverlayTimer?.cancel();
-    _infoOverlayTimer?.cancel();
     _chewieController?.dispose();
     _videoController.dispose();
+    super.dispose();
+  }
+
+  ChewieController _createChewieController({required bool autoPlay}) {
+    return ChewieController(
+      videoPlayerController: _videoController,
+      autoPlay: autoPlay,
+      looping: false,
+      subtitle: _subtitles,
+      showSubtitles: _subtitles.isNotEmpty,
+      subtitleBuilder: _buildSubtitle,
+      pauseOnBackgroundTap: true,
+      allowFullScreen: false,
+      customControls: const CupertinoControls(
+        backgroundColor: Color.fromRGBO(41, 41, 41, 0.7),
+        iconColor: Color.fromARGB(255, 200, 200, 200),
+      ),
+      hideControlsTimer: const Duration(seconds: 3),
+    );
+  }
+
+  Future<void> _openFullscreen() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (context) {
+          return _FullscreenVideoPlayer(
+            backend: widget.backend,
+            videoPath: widget.videoPath,
+            videoController: _videoController,
+            createChewieController: () => _createChewieController(autoPlay: false),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final error = _error;
+    if (error != null) {
+      return Center(
+        child: Text(
+          '${widget.backend.openErrorTitle}\n$error',
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    final chewieController = _chewieController;
+    if (chewieController == null || !_videoController.value.isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return _PlayerSurface(
+      backend: widget.backend,
+      videoPath: widget.videoPath,
+      videoController: _videoController,
+      chewieController: chewieController,
+      fullscreenIcon: Icons.fullscreen,
+      onFullscreenPressed: _openFullscreen,
+    );
+  }
+}
+
+class _FullscreenVideoPlayer extends StatefulWidget {
+  const _FullscreenVideoPlayer({
+    required this.backend,
+    required this.videoPath,
+    required this.videoController,
+    required this.createChewieController,
+  });
+
+  final VideoPlayerBackend backend;
+  final String videoPath;
+  final official.VideoPlayerController videoController;
+  final ChewieController Function() createChewieController;
+
+  @override
+  State<_FullscreenVideoPlayer> createState() => _FullscreenVideoPlayerState();
+}
+
+class _FullscreenVideoPlayerState extends State<_FullscreenVideoPlayer> {
+  late final ChewieController _chewieController;
+
+  @override
+  void initState() {
+    super.initState();
+    _chewieController = widget.createChewieController();
+  }
+
+  @override
+  void dispose() {
+    _chewieController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: _PlayerSurface(
+          backend: widget.backend,
+          videoPath: widget.videoPath,
+          videoController: widget.videoController,
+          chewieController: _chewieController,
+          fullscreenIcon: Icons.fullscreen_exit,
+          onFullscreenPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayerSurface extends StatefulWidget {
+  const _PlayerSurface({
+    required this.backend,
+    required this.videoPath,
+    required this.videoController,
+    required this.chewieController,
+    required this.fullscreenIcon,
+    required this.onFullscreenPressed,
+  });
+
+  final VideoPlayerBackend backend;
+  final String videoPath;
+  final official.VideoPlayerController videoController;
+  final ChewieController chewieController;
+  final IconData fullscreenIcon;
+  final VoidCallback onFullscreenPressed;
+
+  @override
+  State<_PlayerSurface> createState() => _PlayerSurfaceState();
+}
+
+class _PlayerSurfaceState extends State<_PlayerSurface> {
+  Timer? _volumeOverlayTimer;
+  Timer? _infoOverlayTimer;
+  bool _showVolumeOverlay = false;
+  bool _showInfoOverlay = false;
+
+  @override
+  void dispose() {
+    _volumeOverlayTimer?.cancel();
+    _infoOverlayTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _handleVolumeDrag(double deltaDy, double dragAreaHeight) async {
     final height = dragAreaHeight <= 0 ? 1.0 : dragAreaHeight;
     final deltaVolume = -deltaDy / height;
-    final nextVolume = (_videoController.value.volume + deltaVolume).clamp(
+    final nextVolume = (widget.videoController.value.volume + deltaVolume).clamp(
       0.0,
       1.0,
     );
-    await _videoController.setVolume(nextVolume);
+    await widget.videoController.setVolume(nextVolume);
     if (!mounted) return;
     setState(() => _showVolumeOverlay = true);
     _volumeOverlayTimer?.cancel();
@@ -175,29 +303,23 @@ class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
     });
   }
 
+  void _hideVolumeOverlaySoon() {
+    _volumeOverlayTimer?.cancel();
+    _volumeOverlayTimer = Timer(const Duration(milliseconds: 900), () {
+      if (mounted) {
+        setState(() => _showVolumeOverlay = false);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final error = _error;
-    if (error != null) {
-      return Center(
-        child: Text(
-          '${widget.backend.openErrorTitle}\n$error',
-          textAlign: TextAlign.center,
-        ),
-      );
-    }
-
-    final chewieController = _chewieController;
-    if (chewieController == null || !_videoController.value.isInitialized) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Listener(
       behavior: HitTestBehavior.translucent,
       onPointerDown: (_) => _showVideoInfo(),
       child: Stack(
         children: [
-          Chewie(controller: chewieController),
+          Chewie(controller: widget.chewieController),
           Positioned.fill(
             child: Row(
               children: [
@@ -216,17 +338,7 @@ class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
                             constraints.maxHeight,
                           );
                         },
-                        onVerticalDragEnd: (_) {
-                          _volumeOverlayTimer?.cancel();
-                          _volumeOverlayTimer = Timer(
-                            const Duration(milliseconds: 900),
-                            () {
-                              if (mounted) {
-                                setState(() => _showVolumeOverlay = false);
-                              }
-                            },
-                          );
-                        },
+                        onVerticalDragEnd: (_) => _hideVolumeOverlaySoon(),
                       );
                     },
                   ),
@@ -234,13 +346,22 @@ class _VideoPlayerWithControlsState extends State<VideoPlayerWithControls> {
               ],
             ),
           ),
+          Positioned(
+            right: 16,
+            bottom: 24,
+            child: IconButton(
+              icon: Icon(widget.fullscreenIcon),
+              color: Colors.white,
+              onPressed: widget.onFullscreenPressed,
+            ),
+          ),
           if (_showInfoOverlay)
             _VideoInfoOverlay(
               backend: widget.backend,
-              controller: _videoController,
+              controller: widget.videoController,
               videoPath: widget.videoPath,
             ),
-          if (_showVolumeOverlay) _VolumeOverlay(volume: _videoController.value.volume),
+          if (_showVolumeOverlay) _VolumeOverlay(volume: widget.videoController.value.volume),
         ],
       ),
     );
