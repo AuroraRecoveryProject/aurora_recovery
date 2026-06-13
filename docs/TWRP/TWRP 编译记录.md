@@ -347,7 +347,6 @@ bootable/recovery/etc/init.recovery.service22.rc:4: recovery: service recovery /
 
 实际上面这类不补也能正常编译，保证编译的情况下尽量少改
 
-
 ### MacOS 相关
 
 #### macOS 文件系统大小写敏感错误
@@ -529,5 +528,3 @@ else
       twrp-build-env
 fi
 ```
-
-
