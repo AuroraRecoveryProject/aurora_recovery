@@ -364,13 +364,13 @@ VENDOR_LIBS=(
     vendor.oplus.hardware.wifi.supplicant-V5-ndk.so
     libcert_parse.wpa_s.so
     android.hardware.wifi.supplicant-V4-ndk.so
-    android.hardware.security.keymint-V1-ndk.so
     android.system.keystore2-V1-ndk.so
     # android.hardware.security.secureclock-V1-ndk.so <- android.system.keystore2-V1-ndk.so
     android.hardware.security.secureclock-V1-ndk.so
     # android.hardware.wifi.common-V2-ndk.so <- android.hardware.wifi.supplicant-V4-ndk.so
     android.hardware.wifi.common-V2-ndk.so
     # android.hardware.security.keymint-V1-ndk.so <- android.system.keystore2-V1-ndk.so
+    android.hardware.security.keymint-V1-ndk.so
 )
 for lib in "${VENDOR_LIBS[@]}"; do
     adb shell "cp /vendor/lib64/$lib /tmp/oem/lib64/"
